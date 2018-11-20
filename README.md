@@ -1,1 +1,2 @@
-# Applied-Stats-Project-2
+# MSDS6372_Project2
+Kobe Bryant Shot Selection
