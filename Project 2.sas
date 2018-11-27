@@ -23,7 +23,7 @@ proc means data = train n nmiss;
   var _numeric_;
 run;
 
-/* investigate means of training data */
+/* investigate means of training data and any missing values */
 proc means data = train n nmiss;
 run;
 
@@ -247,7 +247,7 @@ ods graphics off;
 
 
 
-/* correlation analysis - histogram */
+/* correlation analysis */
 ods graphics on; 
 proc corr data=train2 plots=matrix(histogram);                                                                                                                
 var recId 
@@ -302,6 +302,11 @@ run;
 ods graphics off;
 
 
+/* correlation analysis using train2 data vs shot made flag */
+proc corr data=train2 plots=matrix(histogram);                                                                                                              
+      var shot_made_flag game_event_id lat loc_y minutes_remaining period seconds_remaining shot_distance attendance arena_temp avgnoisedb;                                                                                                                             
+      run;
+
 
 /* correlation analysis using pricipal components vs shot made flag */
 proc corr data=pca plots=matrix(histogram);                                                                                                              
@@ -311,7 +316,7 @@ proc corr data=pca plots=matrix(histogram);
 
 /* model 1 - GLM select using PCA */
 proc glmselect data=pca plots=all seed=3;
-model shot_made_flag (event='1') =prin1-prin10 / selection = stepwise(choose=CV select=CV stop=CV);
+model shot_made_flag =prin1-prin10 / selection = stepwise(choose=CV select=CV stop=CV);
 run;
 
 
@@ -324,11 +329,12 @@ proc logistic data=pca plots(only)=(roc(id=obs) effect);
                             		rsquare
 									lackfit
 									ctable;
+  output out = model_2_results p = Predict;
 run;
 ods graphics off;
 
 
-/* model 3 - Logistic using train2 dataset (not PCA) */
+/* model 3 - Logistic using train2 dataset (not PCA) only by distance */
 ods graphics on;
 proc logistic data=train2 plots(only)=(roc(id=obs) effect);
   model shot_made_flag (event='1') = shot_distance / scale=none
@@ -337,11 +343,40 @@ proc logistic data=train2 plots(only)=(roc(id=obs) effect);
                             		rsquare
 									lackfit
 									ctable;
+  output out = model_3_results p = Predict;
 run;
 ods graphics off;
 
 
+/* create data for model 4 - data sets for playoffs and not at playoffs */
+
+data train2_playoffs;
+set train2;
+where playoffs = 1;
+run;
+
+data train2_no_playoffs;
+set train2;
+where playoffs = 0;
+run;
+
+
 /* model 4 - Logistic using train2 dataset (not PCA) during playoffs */
+
+ods graphics on;
+proc logistic data=train2_no_playoffs plots(only)=(roc(id=obs) effect);
+  model shot_made_flag (event='1') = shot_distance / scale=none
+                            		clparm=wald
+                            		clodds=pl
+                            		rsquare
+									lackfit
+									ctable;
+  output out = model_4_results p = Predict;
+run;
+ods graphics off;
+
+
+/* model 5 - Logistic using train2 dataset (not PCA) during playoffs */
 ods graphics on;
 proc logistic data=train2 plots(only)=(roc(id=obs) effect);
   model shot_made_flag (event='1') = shot_distance playoffs arena_temp game_event_id lat lon / scale=none
@@ -350,11 +385,33 @@ proc logistic data=train2 plots(only)=(roc(id=obs) effect);
                             		rsquare
 									lackfit
 									ctable;
-  output out = train_results p = Predict;
+  output out = model_5_results p = Predict;
 run;
 ods graphics off;
 
 
+/* model 6 - Logistic using train2 dataset (not PCA) for all variables that had corr p < 0.0001 */
+ods graphics on;
+proc logistic data=train2 plots(only)=(roc(id=obs) effect);
+  model shot_made_flag (event='1') = shot_distance playoffs period minutes_remaining seconds_remaining attendance arena_temp avgnoisedb / scale=none
+                            		clparm=wald
+                            		clodds=pl
+                            		rsquare
+									lackfit
+									ctable;
+  output out = model_6_results p = Predict;
+run;
+ods graphics off;
+
+
+/* Model 7 - LDA Model */
+
+proc discrim data=train2 outstat=LDAstat method=normal pool=yes
+                list crossvalidate;
+      class shot_made_flag;
+      priors prop;
+      var shot_distance playoffs period minutes_remaining seconds_remaining attendance arena_temp avgnoisedb;
+   run;
 	
 
 
@@ -484,13 +541,13 @@ run;
 /* predict response field (shot_made_flag) using desired method */
 ods graphics on;
 proc logistic data=test3 plots(only)=(roc(id=obs) effect);
-  model shot_made_flag (event='1') = shot_distance playoffs arena_temp game_event_id lat lon / scale=none
+  model shot_made_flag (event='1') = shot_distance playoffs period minutes_remaining seconds_remaining attendance arena_temp avgnoisedb / scale=none
                             		clparm=wald
                             		clodds=pl
                             		rsquare
 									lackfit
 									ctable;
-output out = results p = Predict;
+output out = model_test_results p = Predict;
 run;
 ods graphics off;
 
@@ -536,12 +593,4 @@ run;
 
 
 
-/* LDA Model */
-
-proc discrim data=train2 outstat=LDAstat method=normal pool=yes
-                list crossvalidate;
-      class shot_made_flag;
-      priors prop;
-      var shot_distance playoffs arena_temp game_event_id lat lon;
-   run;
 
