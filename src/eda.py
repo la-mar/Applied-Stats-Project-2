@@ -264,6 +264,14 @@ def wrangle_features(data: pd.DataFrame) -> pd.DataFrame:
 			data['seconds_left_in_period'] = data.minutes_remaining * 60 + data.seconds_remaining
 	except Exception as e:
 		print('Failed to add feature: seconds_left_in_period. ({})'.format(e))
+
+	try:
+			data['last_seconds_of_period'] = data.seconds_left_in_period < 2
+			data.last_seconds_of_period = data.last_seconds_of_period.astype(int)
+	except Exception as e:
+		print('Failed to add feature: last_seconds_of_period. ({})'.format(e))
+
+
 	try:
 		if feats.period:
 			data['seconds_elapsed_in_game'] = SECONDS_IN_PERIOD * data.period - data.seconds_left_in_period
@@ -311,31 +319,10 @@ def wrangle_features(data: pd.DataFrame) -> pd.DataFrame:
 
 	return data
 
-def drop_redundant_features(data):
-
-	# features to remove due to redundency or constant value
-	remove = [
-		'team_id',
-		'team_name',
-		'season',
-		# 'game_id',
-		'matchup',
-		'shot_id',
-		'recId',
-		'shot_zone_area',
-		'shot_zone_basic',
-		'shot_zone_range',
-		'minutes_remaining',
-		'seconds_elapsed_in_game',
-		# 'lat',
-		# 'lon',
-		# 'game_event_id',
-		'game_date',
-		'action_type'
-	]
+def drop_features(data, columns):
 
 	# Remove columns in the 'remove' list if they are present in the dataset
-	data = data.drop(columns = [x for x in remove if x in data.columns])
+	data = data.drop(columns = [x for x in columns if x in data.columns])
 	return data
 
 def eigen_solver():
@@ -430,7 +417,7 @@ def fix_mulitcollinearity(data: pd.DataFrame):
 	data = data.drop(columns = vifs[vifs.isna()].index)
 	return data
 
-def prepare_data(data: pd.DataFrame, drop_categorical = False) -> pd.DataFrame:
+def prepare_data(data: pd.DataFrame, drop_categorical = False, drop_columns: list = None) -> pd.DataFrame:
 	"""Template procedue to ingest new dataset.
 
 	Arguments:
@@ -441,27 +428,27 @@ def prepare_data(data: pd.DataFrame, drop_categorical = False) -> pd.DataFrame:
 	"""
 
 	data = wrangle_features(data)
-	data = drop_redundant_features(data)
+	if drop_columns is not None:
+		data = drop_features(data, drop_columns)
 	data = fix_mulitcollinearity(data)
 
 	# Drop remaining categoricals
 	if drop_categorical:
 		data = data.select_dtypes(exclude = ['object', 'category'])
-		# data.drop(
-		# 				columns = [
-		# 					'opponent',
-		# 					'shot_type',
-		# 					'combined_shot_type',
-		# 					'action_type'
-		# 				]
-		# 				)
 
-	# print('\n\ndtypes:')
-	# print(d1.dtypes)
 	return data
 
+def identify_outliers(data):
+	pass
 
 
+
+action_counts = DATA['action_type'].value_counts().sort_values(ascending = False)
+
+# from scipy import stats
+# d2[(np.abs(stats.zscore(d2)) < 3).any(axis=1)]
+# d2[np.abs(d2-d2.mean()) <= (3*d2.std())]
+# stats.trimb
 
 # data = data.drop(columns = [
 #     'minutes_remaining',

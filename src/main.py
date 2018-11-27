@@ -35,7 +35,7 @@ from scipy.spatial import distance
 sys.path.insert(0, os.getcwd()+'/src')
 from eda import *
 from confusion_matrix_pretty import *
-from plotting import *
+# from plotting import *
 from logistic_regression import *
 from linear_discriminant_analysis import *
 
@@ -56,74 +56,146 @@ def get_dummies(df: pd.DataFrame, drop_first = False):
 def LogRegModel(data: pd.DataFrame, add_constant = False):
     if add_constant:
         data = sm.add_constant(data)
-    model = LogR(data.fillna(0), DEPENDENT)
-    # print(model.describe_features())
+    model = LogR(data, DEPENDENT)
     model.sm = model.statsmodel()
-    # print(model.sm.summary())
-    # print(model.sm.summary2())
-    model.sm.wald_test_terms()
+
     model.yhat = model.sm.predict(model.test_x)
-    print("\nLog Loss: {}\n".format(
+    print("\n Predicted Log Loss: {}\n".format(
         round(
             log_loss(model.test_y, model.yhat)
             , 4)))
     return model
 
+def summarize_model(model: LogR):
+    print(model.describe_features())
+    print(model.sm.summary())
+    print(model.sm.summary2())
+    print(model.sm.wald_test_terms())
 
 # Import Data
-DATA = pd.read_excel('data/project2Data.xlsx', index = 'recId')
-FOR_PREDICTION = pd.read_excel('data/project2Pred.xlsx')
+DATA = pd.read_excel('data/project2Data.xlsx', index_col = 'recId')
+FOR_PREDICTION = pd.read_excel('data/project2Pred.xlsx', index_col = 'rannum')
 DEPENDENT = "shot_made_flag"
 
+REDUNDANT_FEATURES = [
+		'team_id', # constant term
+		'team_name', # constant term
+		'season',
+		'game_id', # violates independence
+		'matchup',
+		'shot_id',
+		'recId',
+		'shot_zone_area',
+		'shot_zone_basic',
+		'shot_zone_range',
+		'minutes_remaining',
+		'seconds_elapsed_in_game',
+		'game_event_id',  # violates independence
+		# 'game_date',
+		'action_type',
+        'loc_x', # collinear with lat
+        'loc_y', # collinear with lon
+
+	]
 
 
 
 
+"""############# Model 0 - Predicted Log Loss: 0.6552 #############"""
 
-"""########################### Model 1 ###########################"""
+
+"""Dataset: d0 | Prediction set: d0_pred
+    - Full Model
+"""
+
+d0 = prepare_data(DATA.drop(columns = ['action_type']))
+d0.game_date = d0.game_date.apply(lambda x: x.toordinal())
+d0 = get_dummies(d0).fillna(0) # Get dummy variables for categoricals
+d0_pred = wrangle_features(FOR_PREDICTION)
+d0_pred.game_date = d0_pred.game_date.apply(lambda x: x.toordinal())
+d0_pred = get_dummies(d0_pred).fillna(0) # Get dummy variables for categoricals
+d0_pred = d0_pred[cols(d0)]
+
+"""Fit d2"""
+
+model0 = LogRegModel(d0)
+summarize_model(model0)
+model0.roc_plot()
+
+"""############# Model 1 - Predicted Log Loss: 0.6652 #############"""
+
 
 """Dataset: d1 | Prediction set: d1_pred
     - No categorical features
 """
 d1 = prepare_data(DATA, drop_categorical = True) # Wrangle Data
-d1 = d1.dropna()
-d1_pred = wrangle_features(FOR_PREDICTION)
-d1_pred = d1_pred[cols(d1)].fillna(0)
+d1.game_date = d1.game_date.apply(lambda x: x.toordinal())
+d1 = d1.fillna(0)
+# d1_pred = wrangle_features(FOR_PREDICTION)
+# d1_pred.game_date = d1_pred.game_date.apply(lambda x: x.toordinal())
+# d1_pred = d1_pred[cols(d1)].fillna(0)
 
 """Fit d1"""
 model1 = LogRegModel(d1)
-model1.describe_features()
-model1.sm.summary2()
+summarize_model(model1)
+model1.roc_plot()
 
-"""########################### Model 2 ###########################"""
+"""############# Model 2 - Predicted Log Loss: 0.6479 #############"""
 
 """Dataset: d2 | Prediction set: d2_pred
     - Categorical features as indicators
+    - Drop redundant features
 """
-d2 = prepare_data(DATA)
+
+d2 = prepare_data(DATA, drop_columns= REDUNDANT_FEATURES)
+d2.game_date = d2.game_date.apply(lambda x: x.toordinal())
+# d2.last_seconds_of_period = d2.last_seconds_of_period.astype(int)
 d2 = get_dummies(d2).fillna(0) # Get dummy variables for categoricals
-d2_pred = wrangle_features(FOR_PREDICTION)
-d2_pred = get_dummies(d2_pred) # Get dummy variables for categoricals
-d2_pred = d2_pred[cols(d2)].fillna(0)
+# d2_pred = wrangle_features(FOR_PREDICTION)
+# d2_pred = get_dummies(d2_pred).fillna(0) # Get dummy variables for categoricals
+# d2_pred = d2_pred[cols(d2)]
 
 """Fit d2"""
-
 model2 = LogRegModel(d2)
-model2.describe_features()
-model2.sm.summary2()
+summarize_model(model2)
 model2.roc_plot()
+pairplot(x = d2)
 
-"""########################### Model 3 ###########################"""
+odds = np.exp(model2.sm.params).sort_values(ascending = False)
+
+""" Refine Model 2 """
+
+wald = model2.sm.wald_test_terms()
+wald.df = wald.summary_frame()
+wald.significant = wald.df[wald.df['P>chi2'] < 0.1].index.tolist()
+
+""" Refined Fit - Predicted Log Loss: 0.6634 """
+
+model2r = LogRegModel(d2[wald.significant + [DEPENDENT]])
+
+"""
+lat                      -0.1393
+shot_distance            -0.0447
+attendance                0.0002
+arena_temp                0.0337
+seconds_left_in_game      0.0001
+last_seconds_of_period   -0.8275
+"""
+
+
+#! Interpret: http://www-hsc.usc.edu/~eckel/biostat2/notes/notes14.pdf
+
+"""############# Model 3 - Predicted Log Loss: 0.669 #############"""
 
 """Dataset: d3 | Prediction set: d3_pred
     - Allen's Model
 """
 d3cols = [
     'shot_distance',
-    'playoffs', 
-    'arena_temp', 
-    'game_event_id', 
-    'lat', 
+    'playoffs',
+    'arena_temp',
+    'game_event_id',
+    'lat',
     'lon',
     'shot_made_flag'
     ]
@@ -132,46 +204,38 @@ d3_pred = FOR_PREDICTION[d3cols].drop(columns = [DEPENDENT]).fillna(0)
 
 """Fit d3"""
 model3 = LogRegModel(d3)
-model3.describe_features()
-model3.sm.summary2()
+summarize_model(model3)
 
-"""########################### Model 4 ###########################"""
 
-"""Dataset: d4 | Prediction set: d4_pred
-    - Categorical features as indicators
-    - log shot_distance
-    - log time_remaining
+"""############# Model 4 - Predicted Log Loss: ??? #############"""
+
+
+"""Dataset: d4 | Prediction set: d1_pred
+    - No categorical features
 """
-
-
-# d4 = DATA[DATA.seconds_left_in_period > 1]
-d4 = prepare_data(d4)
-# d4.shot_distance = np.log(d4.shot_distance)
-d4 = get_dummies(d4).fillna(0) # Get dummy variables for categoricals
-# d4.game_date = d4.game_date.apply(lambda x: x.toordinal())
-d4 = d4.drop(columns = ['game_date'])
+d4 = prepare_data(DATA) # Wrangle Data
+d4.game_date = d4.game_date.apply(lambda x: x.toordinal())
+d4 = d4.fillna(0)
 d4_pred = wrangle_features(FOR_PREDICTION)
-d4_pred = get_dummies(d4_pred) # Get dummy variables for categoricals
+d4_pred.game_date = d4_pred.game_date.apply(lambda x: x.toordinal())
 d4_pred = d4_pred[cols(d4)].fillna(0)
 
+"""Fit d1"""
+model1 = LogRegModel(d1)
+summarize_model(model1)
+model1.roc_plot()
 
 
-"""Fit d4"""
-# model4 = LogRegModel(d4)
 
-model4 = LogR(d4, DEPENDENT)
-model4.describe_features()
-model4.sm.summary2()
 
-print(model.describe_features())
-model4.sm = sm.Logit(model.train_y, sm.add_constant(model4.train_x)).fit()
-model4.sm.summary2()
-model4.sm.wald_test_terms()
-model4.yhat = model4.sm.predict(model4.test_x)
-print("\nLog Loss: {}\n".format(
-    round(
-        log_loss(model4.test_y, model4.yhat)
-        , 4)))
+
+
+
+
+
+
+
+
 
 #! Data Overview
 
@@ -182,33 +246,10 @@ print("\nLog Loss: {}\n".format(
 sm.qqplot(DATA.arena_temp, stats.t, fit=True, line='45')
 
 #? Correlation Matrix
-import statsmodels.graphics.api as smg
-d = DATA.select_dtypes(np.number)
-corr_matrix = np.corrcoef(d.T)
-smg.plot_corr(corr_matrix, xnames=d.columns)
 
 
-clf = LogisticRegression()
-clf.fit(model2.train_x, model2.train_y)
-preds = clf.predict_proba(model2.test_x)[:,1]
-fpr, tpr, _ = roc_curve(model2.test_y, preds)
 
-# fpr, tpr, _ = roc_curve(self.test_y, y_score)
 
-roc_auc = auc(fpr, tpr)
-plt.plot(fpr, tpr, lw=1, alpha=1,
-            label='ROC fold %d (AUC = %0.2f)' % (1, roc_auc))
-
-plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
-        label='Chance', alpha=.8)
-
-plt.xlim([-0.05, 1.05])
-plt.ylim([-0.05, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver operating characteristic example')
-plt.legend(loc="lower right")
-plt.show()
 
 """
 •	The __odds of Kobe making a shot decrease with respect to the distance he is from the hoop__.  If there is evidence of this, quantify this relationship.  (CIs, plots, etc.)

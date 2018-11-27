@@ -30,7 +30,7 @@ from scipy.spatial import distance
 sys.path.insert(0, os.getcwd()+'/src')
 from eda import *
 from confusion_matrix_pretty import *
-from plotting import *
+# from plotting import *
 
 class LDAB(LinearDiscriminantAnalysis):
     """Sparse extension of sklearn.discriminant_analysis.LinearDiscriminantAnalysis for handling binary class cases.

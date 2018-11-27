@@ -7,7 +7,7 @@ import pandas as pd
 
 from eda import *
 from confusion_matrix_pretty import *
-from plotting import *
+# from plotting import *
 
 def pca_bin(train_x: pd.DataFrame, n_components = 2) -> pd.DataFrame:
     """Wrapper for sklearn.decomposition.PCA for binary classification
@@ -44,7 +44,7 @@ def kaggle_test(cfr: str) -> pd.DataFrame:
     pids = pred_x.shot_id
 
     data = wrangle_features(data)
-    data = drop_redundant_features(data)
+    data = drop_features(data)
     data = fix_mulitcollinearity(data)
 
     pred_x = wrangle_features(pred_x)

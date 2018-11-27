@@ -2,7 +2,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import chi2
 from sklearn.metrics import (
-        classification_report, 
+        classification_report,
         roc_curve,
         auc
 
@@ -12,17 +12,24 @@ from confusion_matrix_pretty import *
 import statsmodels.api as sm
 
 
+# m2b = LogR(d2, DEPENDENT)
+# a = LogisticRegression(fit_intercept = True, C = 1e8)
+# a.fit(m2b.train_x, m2b.train_y)
+# a.score(m2b.test_x, m2b.test_y)
+
 class LogR(LogisticRegression):
     """Sparse extension of sklearn.linear_model.LogisticRegression.
-    
+
     """
 
-    def __init__(self, 
-            data: pd.DataFrame, 
+    def __init__(self,
+            data: pd.DataFrame,
             dependent_name: None,
             store_covariance: bool = True,
-            test_size: float = 0.25):
-        super().__init__(solver = 'lbfgs'
+            test_size: float = 0.25,
+            fit_intercept = False):
+        super().__init__(solver = 'lbfgs',
+                        fit_intercept = fit_intercept
                         )
         self.yhat = None
 
@@ -51,10 +58,10 @@ class LogR(LogisticRegression):
 
     def confusion_matrix(self, test = False, plot = True):
         """Generate, and optionally plot, a confusion matrix for the test or train datasets
-        
+
         Keyword Arguments:
             plot {bool} -- optionally plot the confusion matrix (default: {True})
-        
+
         Returns:
             pd.DataFrame -- confusion matrix
         """
@@ -76,7 +83,7 @@ class LogR(LogisticRegression):
 
     def score(self) -> float:
         """Wrapper for parent class method using xy's stored in child class object.  Scores model fit using test data.
-        
+
         Returns:
             float -- model score
 
@@ -94,7 +101,7 @@ class LogR(LogisticRegression):
 
         ''')
         return score
- 
+
     def plot_separability() -> None:
         """Plots a heatmap of fitted coefficients, highlighting features that are more likely seperable by a linear hyperplane.
         """
@@ -102,9 +109,9 @@ class LogR(LogisticRegression):
         x = self.train_x
         if len(x.columns.tolist()) == len(self.coef_[0]):
             fig, ax = plt.subplots(1, 1, figsize=(12, 10))
-            sns.heatmap(pd.DataFrame(self.coef_[0], 
-                                    columns=[1], 
-                                    index=x.columns.tolist()), 
+            sns.heatmap(pd.DataFrame(self.coef_[0],
+                                    columns=[1],
+                                    index=x.columns.tolist()),
                         ax=ax, cmap='RdBu', annot=True)
 
             plt.title('LDA Feature Separability')
@@ -115,13 +122,13 @@ class LogR(LogisticRegression):
 
     def fit(self):
         """Wrapper for parent class method using xy's stored in child class object.
-        
+
         Fit the model.
 
         Returns:
             pd.Series -- array of x values projected to maximize seperation
 
-        """        
+        """
         super().fit(self.train_x, self.train_y)
 
     def predict(self, x):
@@ -133,7 +140,7 @@ class LogR(LogisticRegression):
         """Wrapper for parent class method using xy's stored in child class object.
 
         Transform x to maximize seperation.
-        
+
         Returns:
             pd.Series -- array of x values projected to maximize seperation
 
@@ -156,13 +163,13 @@ class LogR(LogisticRegression):
         """
 
         classification_report(
-            self.test_y, 
+            self.test_y,
             self.yhat,
             target_names=self.classes_.astype(str).tolist())
 
     def statsmodel(self):
         """Model using statsmodels library.
-        
+
         Returns:
             statsmodels result object
 
@@ -170,7 +177,7 @@ class LogR(LogisticRegression):
 
         return sm.Logit(self.train_y, self.train_x).fit()
 
-    def roc_plot(self):
+    def roc_plot(self, sm = True):
         """
         Referenced from:
         https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html#sphx-glr-auto-examples-model-selection-plot-roc-crossval-py
@@ -203,8 +210,7 @@ def RecursiveFeatureSelection(X, y):
     logreg = LogisticRegression()
     rfe = RFE(logreg, 20)
     rfe = rfe.fit(X.fillna(0), y.values.ravel())
-    print(rfe.support_)
-    print(rfe.ranking_)
+    return rfe
 
 
 
