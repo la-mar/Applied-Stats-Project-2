@@ -29,13 +29,14 @@ from scipy.spatial import distance
 # os.chdir(os.path.dirname(__file__))
 sys.path.insert(0, os.getcwd()+'/src')
 from eda import *
-from analysis import *
 from confusion_matrix_pretty import *
 from plotting import *
+from logistic_regression import *
+from linear_discriminant_analysis import *
 
 def cols(df: pd.DataFrame) -> list:
     """Extract list of columns from input DataFrame and removing the dependent variable."""
-    
+
     return [x for x in df.columns.tolist() if x not in [DEPENDENT]]
 
 def get_dummies(df: pd.DataFrame, drop_first = False):
@@ -59,6 +60,10 @@ DEPENDENT = "shot_made_flag"
 d1 = prepare_data(DATA, drop_categorical = True) # Wrangle Data
 d1 = d1.dropna()
 
+#! Log shot_distance
+#! Log time remaining
+
+
 d1_pred = prepare_data(FOR_PREDICTION)
 d1_pred = d1_pred[cols(d1)].fillna(0)
 
@@ -66,7 +71,7 @@ d1_pred = d1_pred[cols(d1)].fillna(0)
 """Dataset: d2 | Prediction set: d2_pred
     - Categorical features as indicators
 """
-d2 = prepare_data(DATA) 
+d2 = prepare_data(DATA)
 d2 = get_dummies(d2) # Get dummy variables for categoricals
 
 d2_pred = wrangle_features(FOR_PREDICTION)

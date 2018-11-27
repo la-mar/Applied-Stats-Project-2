@@ -1,6 +1,6 @@
 /* import data */
 
-proc import datafile="c:\users\allen\documents\smu data science\MSDS 6372 - Applied Statistics\project 2\project2Data.csv"  
+proc import datafile="c:\users\allen\documents\smu data science\MSDS 6372 - Applied Statistics\project 2\project2Data.csv"
           dbms=dlm out=train replace;
      delimiter=',';
      getnames=yes;
@@ -34,26 +34,26 @@ run;
 
 ods graphics on;
 proc univariate data = train plot;
-var recId 
-game_event_id 
-game_id 
-lat 
-loc_x 
-loc_y 
-lon 
-minutes_remaining 
-period 
-playoffs 
-season 
-seconds_remaining 
-shot_distance 
-shot_made_flag 
-team_id 
-game_date 
-shot_id 
-attendance 
-arena_temp 
-avgnoisedb 
+var recId
+game_event_id
+game_id
+lat
+loc_x
+loc_y
+lon
+minutes_remaining
+period
+playoffs
+season
+seconds_remaining
+shot_distance
+shot_made_flag
+team_id
+game_date
+shot_id
+attendance
+arena_temp
+avgnoisedb
 ;
 run;
 ods graphics off;
@@ -174,10 +174,10 @@ set train2;
    n_pms_remaining = input(pms_remaining,8.);
 run;
 data train2;
-set train2 (drop = pms_remaining); 
+set train2 (drop = pms_remaining);
 run;
 data train2;
-set train2 (rename=( 
+set train2 (rename=(
 'n_pms_remaining'n='pms_remaining'n));
 run;
 proc print data=train2 (obs=10);
@@ -192,7 +192,7 @@ ods graphics on;
 proc univariate data = train2;
 var pms_remaining;
 histogram;
-run; 
+run;
 ods graphics off;
 
 
@@ -218,60 +218,60 @@ ods graphics off;
 
 
 
-ods graphics on; 
-proc corr data=train2 plots=matrix(histogram);                                                                                                                
-var recId 
-game_event_id 
-game_id 
-lat 
-loc_x 
-loc_y 
-lon 
-minutes_remaining 
-period 
-playoffs 
-season 
-seconds_remaining 
-shot_distance 
-shot_made_flag 
-team_id 
-game_date 
-shot_id 
-attendance 
-arena_temp 
-avgnoisedb;                                                                                                                    
-run; 
+ods graphics on;
+proc corr data=train2 plots=matrix(histogram);
+var recId
+game_event_id
+game_id
+lat
+loc_x
+loc_y
+lon
+minutes_remaining
+period
+playoffs
+season
+seconds_remaining
+shot_distance
+shot_made_flag
+team_id
+game_date
+shot_id
+attendance
+arena_temp
+avgnoisedb;
+run;
 ods graphics off;
 
 
 
 ods graphics on;
-proc princomp plots=all data=train2 cov out=pca;                                                                                                              
-var recId 
-game_event_id 
-game_id 
-lat 
-loc_x 
-loc_y 
-lon 
-minutes_remaining 
-period 
-playoffs 
-season 
-seconds_remaining 
-shot_distance 
-shot_made_flag 
-team_id 
-game_date 
-shot_id 
-attendance 
-arena_temp 
+proc princomp plots=all data=train2 cov out=pca;
+var recId
+game_event_id
+game_id
+lat
+loc_x
+loc_y
+lon
+minutes_remaining
+period
+playoffs
+season
+seconds_remaining
+shot_distance
+shot_made_flag
+team_id
+game_date
+shot_id
+attendance
+arena_temp
 avgnoisedb;
 run;
 ods graphics off;
 
-proc corr data=pca plots=matrix(histogram);                                                                                                              
-      var shot_made_flag prin1 - prin10;                                                                                                                             
+proc corr data=pca plots=matrix(histogram);
+      var shot_made_flag prin1 - prin10;
       run;
 
 

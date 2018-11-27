@@ -7,17 +7,17 @@ import pandas as pd
 
 from eda import *
 from confusion_matrix_pretty import *
-from plotter import *
+from plotting import *
 
 def pca_bin(train_x: pd.DataFrame, n_components = 2) -> pd.DataFrame:
     """Wrapper for sklearn.decomposition.PCA for binary classification
-    
+
     Perform PCA analysis on X shaped (n_obs, n_features), returning X projected in the directions of PC1 and PC2.
 
-    
+
     Arguments:
         train_x {pd.DataFrame} -- Matrix like object of independent variables
-    
+
     Returns:
         pd.DataFrame -- DataFrame containing principle components
     """
@@ -27,7 +27,7 @@ def pca_bin(train_x: pd.DataFrame, n_components = 2) -> pd.DataFrame:
 
     # Percentage of variance explained for each components
     print(f'''explained variance ratio:
-        PC1: {round(pca.explained_variance_ratio_[0], 2)} 
+        PC1: {round(pca.explained_variance_ratio_[0], 2)}
         PC2: {round(pca.explained_variance_ratio_[1], 2)} ''')
 
     result = pd.DataFrame(result,
@@ -59,7 +59,7 @@ def kaggle_test(cfr: str) -> pd.DataFrame:
     pred_x = pred_x[data.columns].drop(columns =
                                     ['shot_made_flag'])
 
-    model = cfr(data, DEPENDENT)    
+    model = cfr(data, DEPENDENT)
     model.fit()
     model.predict(pred_x)
     model.get_confusion_matrix()

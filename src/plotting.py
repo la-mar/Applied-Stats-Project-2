@@ -12,11 +12,11 @@ import os
 
 def pca_bin_plot(pca_result: pd.DataFrame, train_y: pd.DataFrame) -> None:
     """Creates a scatterplot of binary PCA results.
-    
+
     Arguments:
         pca_result {pd.DataFrame} -- (n_obs, n_components)
         train_y {pd.DataFrame} -- depended variable
-    
+
     Returns:
         None
     """
@@ -24,19 +24,19 @@ def pca_bin_plot(pca_result: pd.DataFrame, train_y: pd.DataFrame) -> None:
     plt.figure()
 
     plt.scatter(
-        pca_result[train_y == 0].PC1, 
-        pca_result[train_y == 0].PC2, 
-        color='red', 
-        alpha=.25, 
+        pca_result[train_y == 0].PC1,
+        pca_result[train_y == 0].PC2,
+        color='red',
+        alpha=.25,
         lw=1,
         label='shot_missed'
         )
 
     plt.scatter(
-        pca_result[train_y == 1].PC1, 
-        pca_result[train_y == 1].PC2, 
-        color='green', 
-        alpha=.25, 
+        pca_result[train_y == 1].PC1,
+        pca_result[train_y == 1].PC2,
+        color='green',
+        alpha=.25,
         lw=1,
         label='shot_made'
         )
@@ -60,11 +60,11 @@ def pca_bin_plot(pca_result: pd.DataFrame, train_y: pd.DataFrame) -> None:
 
 def stacked_bar_plot(x: pd.Series, indicator: pd.Series) -> None:
     """Plots a stacked bar chart of x, colored by the indicator variable.
-    
+
     Arguments:
         x {pd.Series} -- [description]
         indicator {pd.Series} -- [description]
-    
+
     Returns:
         None -- [description]
     """
@@ -73,60 +73,60 @@ def stacked_bar_plot(x: pd.Series, indicator: pd.Series) -> None:
     plt.legend(title=indicator.name)
 
 # def pairgrid_reg():
-#     g = sns.PairGrid(temp_x[['shot_made_flag', 'shot_distance']], hue="shot_made_flag") 
-#     g.map_upper(sns.regplot) 
-#     g.map_lower(sns.residplot) 
-#     g.map_diag(plt.hist) 
-#     for ax in g.axes.flat: 
-#         plt.setp(ax.get_xticklabels(), rotation=45) 
-#     g.add_legend() 
+#     g = sns.PairGrid(temp_x[['shot_made_flag', 'shot_distance']], hue="shot_made_flag")
+#     g.map_upper(sns.regplot)
+#     g.map_lower(sns.residplot)
+#     g.map_diag(plt.hist)
+#     for ax in g.axes.flat:
+#         plt.setp(ax.get_xticklabels(), rotation=45)
+#     g.add_legend()
 #     g.set(alpha=0.5)
 
 
 
-sns.boxplot()
+# sns.boxplot()
 
 
-[
- 'recId',
- 'action_type',
- 'combined_shot_type',
- 'game_event_id',
- 'game_id',
- 'lat',
- 'loc_x',
- 'loc_y',
- 'lon',
- 'minutes_remaining',
- 'period',
- 'playoffs',
- 'season',
- 'seconds_remaining',
- 'shot_distance',
- 'shot_made_flag',
- 'shot_type',
- 'shot_zone_area',
- 'shot_zone_basic',
- 'shot_zone_range',
- 'team_id',
- 'team_name',
- 'game_date',
- 'matchup',
- 'opponent',
- 'shot_id',
- 'attendance',
- 'arena_temp',
- 'avgnoisedb',
- 'seconds_left_in_period',
- 'home_or_away',
- 'num_shots_cumulative',
- 'angle_from_basket',
- 'season_count',
- 'seconds_elapsed_in_game',
- 'seconds_left_in_game']
+# [
+#  'recId',
+#  'action_type',
+#  'combined_shot_type',
+#  'game_event_id',
+#  'game_id',
+#  'lat',
+#  'loc_x',
+#  'loc_y',
+#  'lon',
+#  'minutes_remaining',
+#  'period',
+#  'playoffs',
+#  'season',
+#  'seconds_remaining',
+#  'shot_distance',
+#  'shot_made_flag',
+#  'shot_type',
+#  'shot_zone_area',
+#  'shot_zone_basic',
+#  'shot_zone_range',
+#  'team_id',
+#  'team_name',
+#  'game_date',
+#  'matchup',
+#  'opponent',
+#  'shot_id',
+#  'attendance',
+#  'arena_temp',
+#  'avgnoisedb',
+#  'seconds_left_in_period',
+#  'home_or_away',
+#  'num_shots_cumulative',
+#  'angle_from_basket',
+#  'season_count',
+#  'seconds_elapsed_in_game',
+#  'seconds_left_in_game']
 
 
-sns.boxplot(x="variable", y="value", data=pd.melt(d1))
+# sns.boxplot(x="variable", y="value", data=pd.melt(d1))
 
 
 

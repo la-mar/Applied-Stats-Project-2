@@ -253,10 +253,10 @@ def wrangle_features(data: pd.DataFrame) -> pd.DataFrame:
 						'shot_id',
 						'attendance',
 						'arena_temp',
-						'avgnoisedb'], 
+						'avgnoisedb'],
 				dtype = bool
 				)
-	
+
 	# Flag features that were passed to the function
 	feats.loc[feats.index.isin(data.columns)] = True
 	try:
@@ -269,7 +269,7 @@ def wrangle_features(data: pd.DataFrame) -> pd.DataFrame:
 			data['seconds_elapsed_in_game'] = SECONDS_IN_PERIOD * data.period - data.seconds_left_in_period
 	except:
 		print('Failed to add feature: seconds_elapsed_in_game')
-	
+
 	try:
 		if True:
 			data['seconds_left_in_game'] = SECONDS_IN_GAME - data.seconds_elapsed_in_game
@@ -281,19 +281,19 @@ def wrangle_features(data: pd.DataFrame) -> pd.DataFrame:
 			data['home_or_away'] = data.matchup.str.contains("@").astype(int)
 	except:
 		print('Failed to add feature: home_or_away')
-		
+
 	try:
 		if feats.game_id:
 			data['num_shots_cumulative'] = data.groupby(['game_id']).cumcount()
 	except:
 		print('Failed to add feature: num_shots_cumulative')
-		
+
 	try:
 		if feats.loc_x & feats.loc_y:
 			data['angle_from_basket'] = data.apply(lambda row: central_angle(row.loc_x, row.loc_y), axis = 1)
 	except:
 		print('Failed to add feature: angle_from_basket')
-		
+
 	try:
 		if feats.season:
 			# Convert season to ordered Categorical (Factor) type
@@ -301,14 +301,14 @@ def wrangle_features(data: pd.DataFrame) -> pd.DataFrame:
 			data['season_count'] = data.season.cat.codes
 	except:
 		print('Failed to add feature: season_count')
-		
+
 	try:
 		if len(data.select_dtypes('object').columns):
 			# Convert other string fields to unordered Categorical
 			data[data.select_dtypes('object').columns.tolist()] = data.select_dtypes('object').astype('category')
 	except:
 		print('Failed to convert objects to categories')
-		
+
 	return data
 
 def drop_redundant_features(data):
@@ -327,9 +327,9 @@ def drop_redundant_features(data):
 		'shot_zone_range',
 		'minutes_remaining',
 		'seconds_elapsed_in_game',
-		'lat',
-		'lon',
-		'game_event_id',
+		# 'lat',
+		# 'lon',
+		# 'game_event_id',
 		'game_date',
 		'action_type'
 	]
@@ -354,17 +354,17 @@ def check_collinearity(data: pd.DataFrame):
 				.set_index('features') \
 				.rename(columns = {'VIF Factor' : 'VIF'}) \
 				.sort_values(by = 'VIF', ascending = False) \
-				.drop('Intercept') 
+				.drop('Intercept')
 
 def check_collinearity_recursive(data: pd.DataFrame, vifs = None):
 	"""Recursively check the multicollinearity (MC) associated with each feature.  Each iteration, the feature with the largest MC is dropped if the MC is infinite or if MC > x, where x is the standard deviation of the finite VIFs of the original features. A matrix containing VIFs for each iteration is returned once an iteration is reached where MC <= x.
-	
+
 	Arguments:
 		data {pd.DataFrame} -- Matrix or DataFrame with shape(n_obs, n_features)
-	
+
 	Keyword Arguments:
 		vifs {None} -- Recursive control parameter (default: {None})
-	
+
 	Returns:
 		[pd.DataFrame] -- Matrix of VIFs per iteration. Nan (not a number) values represent features dropped from the assessment in either a previous or the current iteration.
 	"""
@@ -397,8 +397,8 @@ def check_collinearity_recursive(data: pd.DataFrame, vifs = None):
 		# print(prev_vifs)
 		vifs = prev_vifs.join(vifs, rsuffix = '_'+str(len(vifs)))
 
-	
-	
+
+
 	print(f'VIF: Dropping: {vif0_name} | limit: {limit or 0:.2f} | thresh: {thresh or 0:.2f}')
 
 	if drop_feature:
@@ -414,10 +414,10 @@ def check_collinearity_recursive(data: pd.DataFrame, vifs = None):
 
 def fix_mulitcollinearity(data: pd.DataFrame):
 	"""Remove multicollinear variables by assessing variance inflation factors.
-	
+
 	Arguments:
 		data {pd.DataFrame} -- (n_obs, n_features)
-	
+
 	Returns:
 		pd.DataFrame -- data
 	"""
@@ -432,10 +432,10 @@ def fix_mulitcollinearity(data: pd.DataFrame):
 
 def prepare_data(data: pd.DataFrame, drop_categorical = False) -> pd.DataFrame:
 	"""Template procedue to ingest new dataset.
-	
+
 	Arguments:
 		data {pd.DataFrame} -- new dataset
-	
+
 	Returns:
 		pd.DataFrame -- dataset for further prep or analysis
 	"""
@@ -455,7 +455,7 @@ def prepare_data(data: pd.DataFrame, drop_categorical = False) -> pd.DataFrame:
 		# 					'action_type'
 		# 				]
 		# 				)
-		
+
 	# print('\n\ndtypes:')
 	# print(d1.dtypes)
 	return data
