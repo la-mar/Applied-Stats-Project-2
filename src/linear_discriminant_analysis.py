@@ -70,7 +70,7 @@ class LDAB(LinearDiscriminantAnalysis):
     def describe_features(self):
 
         print(f"""
-        X: features: {len(tx)}
+        X: features: {len(self.train_x)}
 
             dtypes:
             -------""")
@@ -189,9 +189,9 @@ class LDAB(LinearDiscriminantAnalysis):
         """
 
         classification_report(
-            model.test_y,
-            model.yhat,
-            target_names=model.classes_.astype(str).tolist())
+            self.test_y,
+            self.yhat,
+            target_names=self.classes_.astype(str).tolist())
 
     def roc_plot(self):
         """

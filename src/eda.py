@@ -318,7 +318,7 @@ def drop_redundant_features(data):
 		'team_id',
 		'team_name',
 		'season',
-		'game_id',
+		# 'game_id',
 		'matchup',
 		'shot_id',
 		'recId',

@@ -37,7 +37,7 @@ class LogR(LogisticRegression):
     def describe_features(self):
 
         print(f"""
-        X: features: {len(tx)}
+        X: features: {len(self.train_x)}
 
             dtypes:
             -------""")
@@ -156,9 +156,9 @@ class LogR(LogisticRegression):
         """
 
         classification_report(
-            model.test_y, 
-            model.yhat,
-            target_names=model.classes_.astype(str).tolist())
+            self.test_y, 
+            self.yhat,
+            target_names=self.classes_.astype(str).tolist())
 
     def statsmodel(self):
         """Model using statsmodels library.
@@ -197,6 +197,15 @@ class LogR(LogisticRegression):
 
 
 
+from sklearn.linear_model import LogisticRegression
+
+def RecursiveFeatureSelection(X, y):
+    logreg = LogisticRegression()
+    rfe = RFE(logreg, 20)
+    rfe = rfe.fit(X.fillna(0), y.values.ravel())
+    print(rfe.support_)
+    print(rfe.ranking_)
+
 
 
 
@@ -216,6 +225,19 @@ class LogR(LogisticRegression):
 
 
 
+# X_train, X_test, y_train, y_test = train_test_split(
+#     d3.drop(columns=[DEPENDENT]),
+#      d3[DEPENDENT], test_size=0.3, random_state=0)
+# logreg = LogisticRegression(fit_intercept = True, C = 1e9)
+# logreg.fit(X_train, y_train)
+# y_pred = logreg.predict(X_test)
+# print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(logreg.score(X_test, y_test)))
+# log_loss(y_test, y_pred)
+# logreg.coef_
+
+# # sm
+# logit = sm.Logit(y_train, X_train)
+# logit.fit().params
 
 
 
