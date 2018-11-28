@@ -10,7 +10,7 @@ import os
 from scipy.stats import norm
 
 sns.set_style('whitegrid')
-
+sns.set_style("dark")
 data = wrangle_features(DATA)
 DEPENDENT = "shot_made_flag"
 
@@ -22,55 +22,6 @@ def corr_matrix(data: pd.DataFrame):
     d = data.select_dtypes(np.number)
     corr_matrix = np.corrcoef(d.T)
     smg.plot_corr(corr_matrix, xnames=d.columns)
-
-
-def pca_bin_plot(pca_result: pd.DataFrame, train_y: pd.DataFrame) -> None:
-    """Creates a scatterplot of binary PCA results.
-
-    Arguments:
-        pca_result {pd.DataFrame} -- (n_obs, n_components)
-        train_y {pd.DataFrame} -- depended variable
-
-    Returns:
-        None
-    """
-
-    plt.figure()
-
-    plt.scatter(
-        pca_result[train_y == 0].PC1,
-        pca_result[train_y == 0].PC2,
-        color='red',
-        alpha=.25,
-        lw=1,
-        label='shot_missed'
-        )
-
-    plt.scatter(
-        pca_result[train_y == 1].PC1,
-        pca_result[train_y == 1].PC2,
-        color='green',
-        alpha=.25,
-        lw=1,
-        label='shot_made'
-        )
-
-    def draw_vector(v0, v1, ax=None):
-        ax = ax or plt.gca()
-        arrowprops=dict(arrowstyle='->',
-                        linewidth=2,
-                        shrinkA=0, shrinkB=0)
-        ax.annotate('', v1, v0, arrowprops=arrowprops)
-
-    for length, vector in zip(pca.explained_variance_, pca.components_):
-        v = vector * 3 * np.sqrt(length)
-        draw_vector(pca.mean_, pca.mean_ + v)
-    plt.axis('equal');
-
-    plt.legend(loc='best', shadow=False, scatterpoints=1)
-    plt.title('PCA of Shots')
-
-    plt.show()
 
 
 def stacked_bar_plot(x: pd.Series, indicator: pd.Series) -> None:
@@ -175,8 +126,9 @@ season_count                       int8
 last_seconds_of_period            int32
 """
 
+data = d2
 # https://www.kaggle.com/khozzy/kobe-shots-show-me-your-best-model/notebook
-f, axarr = plt.subplots(4, 2, figsize=(15, 15))
+f, axarr = plt.subplots(6, 2, figsize=(15, 15))
 
 sns.boxplot(
     x='lat',
@@ -193,39 +145,81 @@ sns.boxplot(
     ax=axarr[0, 1]
     )
 sns.boxplot(
-    x='loc_y',
+    x='playoffs',
     y='shot_made_flag',
     data=data,
     showmeans=True,
     ax=axarr[1, 0]
     )
 sns.boxplot(
-    x='loc_x',
+    x='last_seconds_of_period',
     y='shot_made_flag',
     data=data,
     showmeans=True,
     ax=axarr[1, 1]
     )
 sns.boxplot(
-    x='minutes_remaining',
+    x='seconds_left_in_period',
     y='shot_made_flag',
     showmeans=True,
     data=data,
     ax=axarr[2, 0]
     )
 sns.boxplot(
-    x='seconds_remaining',
+    x='avgnoisedb',
     y='shot_made_flag',
     showmeans=True,
     data=data,
     ax=axarr[2, 1]
     )
 sns.boxplot(
-    x='shot_distance',
+    x='arena_temp',
     y='shot_made_flag',
     data=data,
     showmeans=True,
     ax=axarr[3, 0]
+    )
+sns.boxplot(
+    x='attendance',
+    y='shot_made_flag',
+    data=data,
+    showmeans=True,
+    ax=axarr[3, 1]
+    )
+sns.boxplot(
+    x='shot_distance',
+    y='shot_made_flag',
+    data=data,
+    showmeans=True,
+    ax=axarr[4, 0]
+    )
+sns.boxplot(
+    x='home_or_away',
+    y='shot_made_flag',
+    data=data,
+    showmeans=True,
+    ax=axarr[4, 1]
+    )
+sns.boxplot(
+    x='num_shots_cumulative',
+    y='shot_made_flag',
+    data=data,
+    showmeans=True,
+    ax=axarr[5, 0]
+    )
+sns.boxplot(
+    x='angle_from_basket',
+    y='shot_made_flag',
+    data=data,
+    showmeans=True,
+    ax=axarr[5, 1]
+    )
+sns.boxplot(
+    x='season_count',
+    y='shot_made_flag',
+    data=data,
+    showmeans=True,
+    ax=axarr[6, 0]
     )
 
 axarr[0, 0].set_title('Latitude')
@@ -239,8 +233,8 @@ axarr[3, 0].set_title('Shot distance')
 plt.tight_layout()
 plt.show()
 
-
-
+#! QQ plot
+# sm.qqplot(DATA.arena_temp, stats.t, fit=True, line='45')
 
 
 def pairplot(x: pd.DataFrame = None, model = None):

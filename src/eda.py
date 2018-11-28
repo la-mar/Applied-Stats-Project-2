@@ -31,7 +31,7 @@ pd.set_option('precision',4)
 # Matplotlib global config
 plt.rcParams.update({'legend.fontsize': 'x-large',
 		  'figure.figsize': (10, 6),
-		 'axes.labelsize': 'small',
+		 'axes.labelsize': 'large',
 		 'axes.titlesize':'xx-large',
 		 'xtick.labelsize':'small',
 		 'ytick.labelsize':'small',
@@ -43,7 +43,7 @@ plt.rcParams.update({'legend.fontsize': 'x-large',
 		 'axes.titleweight': 'bold'
 		 })
 
-plt.style.use('seaborn-deep')
+# plt.style.use('seaborn-deep')
 
 
 # Define Contants
@@ -443,7 +443,7 @@ def identify_outliers(data):
 
 
 
-action_counts = DATA['action_type'].value_counts().sort_values(ascending = False)
+# action_counts = DATA['action_type'].value_counts().sort_values(ascending = False)
 
 # from scipy import stats
 # d2[(np.abs(stats.zscore(d2)) < 3).any(axis=1)]

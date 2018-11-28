@@ -41,14 +41,20 @@ class LDAB(LinearDiscriminantAnalysis):
             data: pd.DataFrame,
             dependent_name: None,
             store_covariance: bool = True,
+            solver = 'eigen',
             test_size: float = 0.25):
         super().__init__(
-                        n_components = 2,
+                        # n_components = 2,
+                        solver = solver,
                         store_covariance = store_covariance
                         )
         self.yhat = None
 
-        self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(data.drop(columns = [dependent_name]), data[dependent_name], test_size = test_size, random_state = 0)
+        self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(
+                        data.drop(columns = [dependent_name]), 
+                        data[dependent_name], 
+                        test_size = test_size, 
+                        random_state = 0)
 
     def __repr__(self):
         return super().__repr__()
@@ -107,7 +113,7 @@ class LDAB(LinearDiscriminantAnalysis):
         #     print('X or Y is empty. Check parameters.')
         #     return None
 
-    def score(self) -> float:
+    def score(self, x, y) -> float:
         """Wrapper for parent class method using xy's stored in child class object.  Scores model fit using test data.
 
         Returns:
@@ -115,8 +121,8 @@ class LDAB(LinearDiscriminantAnalysis):
 
         """
 
-        x = self.test_x
-        y = self.test_y
+        # x = self.test_x
+        # y = self.test_y
 
         score = super().score(x, y)
         print(f'''
@@ -162,7 +168,7 @@ class LDAB(LinearDiscriminantAnalysis):
         self.yhat = super().predict(x)
         return self.yhat
 
-    def transform(self):
+    def transform(self, x):
         """Wrapper for parent class method using xy's stored in child class object.
 
         Transform x to maximize seperation.
@@ -171,7 +177,7 @@ class LDAB(LinearDiscriminantAnalysis):
             pd.Series -- array of x values projected to maximize seperation
 
         """
-        return super().transform(self.x)
+        return super().transform(x)
 
     def log_loss(self, x = None):
 

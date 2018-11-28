@@ -177,6 +177,16 @@ class LogR(LogisticRegression):
 
         return sm.Logit(self.train_y, self.train_x).fit()
 
+
+    def statsmodel_(self):
+        """Model using statsmodels library.
+
+        Returns:
+            statsmodels result object
+
+        """
+
+        return sm.Logit(self.train_y, self.train_x)
     def roc_plot(self, sm = True):
         """
         Referenced from:
@@ -204,7 +214,6 @@ class LogR(LogisticRegression):
 
 
 
-from sklearn.linear_model import LogisticRegression
 
 def RecursiveFeatureSelection(X, y):
     logreg = LogisticRegression()
