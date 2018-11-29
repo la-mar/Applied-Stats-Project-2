@@ -10,7 +10,7 @@ from sklearn.metrics import (
 import pandas as pd
 from confusion_matrix_pretty import *
 import statsmodels.api as sm
-
+from sklearn.metrics import confusion_matrix
 
 # m2b = LogR(d2, DEPENDENT)
 # a = LogisticRegression(fit_intercept = True, C = 1e8)
@@ -73,7 +73,7 @@ class LogR(LogisticRegression):
             y = self.train_y
 
         # if y is not None and x is not None:
-        self.cm = pd.DataFrame(confusion_matrix(y, self.predict(x)), index = [0, 1], columns = [0, 1])
+        self.cm = pd.DataFrame(confusion_matrix(y, self.sm2.fitted.predict(x)), index = [0, 1], columns = [0, 1])
         if plot:
             pretty_plot_confusion_matrix(self.cm, cmap='PuRd')
         return self.cm
@@ -150,7 +150,7 @@ class LogR(LogisticRegression):
     def log_loss(self, x = None):
 
         if self.yhat is not None:
-            self.yhat = self.predict(x or self.test_x)
+            self.yhat = self.sm.predict(x or self.test_x)
 
         return round(log_loss(self.test_y, self.yhat), 2)
 
@@ -213,6 +213,32 @@ class LogR(LogisticRegression):
         plt.show()
 
 
+    def predict_labels(self, x, thresh = 0.5):
+        """Predict class labels"""
+
+        self.yhat = self.sm.fitted.predict(x)
+        pc = np.zeros(self.yhat)
+        pc[self.yhat > thresh] = 1
+        return pc
+
+    def sensitivity(self):
+        """Sensitivity - TP/(TP+FN)"""
+
+        cm = self.sm.pred_table()
+        sens = cm[0,0]/(cm[0,0]+cm[0,1])
+        print('Sensitivity : ', sens )
+        return sens
+
+
+    def specificity(self):
+        """Specificity = TN/(TN+FP)"""
+
+        cm = self.sm.pred_table()
+        spec = cm[1,1]/(cm[1,0]+cm[1,1])
+        print('Specificity : ', spec)
+        return spec
+
+
 
 
 def RecursiveFeatureSelection(X, y):
@@ -220,8 +246,6 @@ def RecursiveFeatureSelection(X, y):
     rfe = RFE(logreg, 20)
     rfe = rfe.fit(X.fillna(0), y.values.ravel())
     return rfe
-
-
 
 
 # Evaluate Model

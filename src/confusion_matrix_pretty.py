@@ -201,7 +201,8 @@ def pretty_plot_confusion_matrix(df_cm, annot=True, cmap="Oranges", fmt='.2f', f
     ax.set_ylabel(ylbl)
     plt.tight_layout()  #set layout slim
     plt.show()
-#
+    return ax
+
 
 def plot_confusion_matrix_from_data(y_test, predictions, columns=None, annot=True, cmap="Oranges",
       fmt='.2f', fz=11, lw=0.5, cbar=False, figsize=[8,8], show_null_values=0, pred_val_axis='lin'):
@@ -245,7 +246,7 @@ def _test_cm():
     #get pandas dataframe
     df_cm = DataFrame(array, index=range(1,7), columns=range(1,7))
     #colormap: see this and choose your more dear
-    cmap = 'PuRd'
+    cmap = 'Oranges'
     pretty_plot_confusion_matrix(df_cm, cmap=cmap)
 #
 

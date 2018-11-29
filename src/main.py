@@ -13,7 +13,7 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.feature_selection import RFE
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, log_loss
+from sklearn.metrics import confusion_matrix, log_loss, roc_auc_score
 from sklearn.linear_model import LogisticRegression
 
 import statsmodels.formula.api as smf
@@ -159,7 +159,10 @@ d2 = get_dummies(d2).fillna(0) # Get dummy variables for categoricals
 model2 = LogRegModel(d2)
 summarize_model(model2)
 model2.sm.summary2()
-sm2 = model2.statsmodel_()
+model2.sm2 = model2.statsmodel_()
+model2.sm2.fitted = model2.sm2.fit()
+model2.sm2.fitted.predict(model2.test_x)
+
 pdf_train_x = sm2.pdf(model2.train_x)
 cdf_train_x = sm2.cdf(model2.train_x)
 
@@ -169,21 +172,39 @@ odds[['Coef.','[0.025', '0.975]']] = np.exp(odds[['Coef.','[0.025', '0.975]']])
 odds[['Coef.','[0.025', '0.975]']] = (odds[['Coef.','[0.025', '0.975]']] - 1) * 100
 
 
+#! COV
+missed = np.cov(d1[d1.shot_made_flag == 0])
+made = np.cov(d1[d1.shot_made_flag == 1])
+pd.concat([pd.DataFrame(made), pd.DataFrame(missed)])
+
+corr_matrix(wrangle_features(DATA.drop(columns = ['action_type'])))
 # sns.lineplot(x = pdf_train_x)
 # probplot = sm.ProbPlot(model2.train_x)
 # probplot.qqplot(line='45')
 # pp_x.qqplot(line='45', other=pp_y)
 sns.set_style("whitegrid")
 
-color = '#888888'
+color = '#ffffff'
 g = sns.regplot(x=model2.test_x.shot_distance, y=model2.test_y, logistic=True)
 g.spines['bottom'].set_color(color)
 g.spines['top'].set_color(color)
+g.spines['left'].set_color(color)
+g.spines['right'].set_color(color)
 g.xaxis.label.set_color(color)
 g.yaxis.label.set_color(color)
 g.tick_params(axis='x', colors=color)
 g.tick_params(axis='y', colors=color)
 g.set_title('Predicted Probabilities for shot_made_flag', color = color)
+
+
+predicted = model2.sm.predict(model2.test_x)
+auc = roc_auc_score(y_true=model2.test_y, y_score=model2.yhat)
+
+
+plot_proba(model2)
+plot_regular_vs_post_season(model2)
+plot_confusion_matrix(model2)
+# g.tight_layout()
 
 
 # Major ticks every 20, minor ticks every 5
@@ -202,6 +223,70 @@ g.grid(which='major', alpha=0.5)
 
 pairplot(x = d2)
 
+
+#! Boxplots
+
+cNoFocus = '#222123'
+g = sns.boxplot(
+        x='shot_made_flag',
+        y='shot_distance',
+        data=d2,
+        showmeans=True,
+        )
+# g.legend()
+g.set_title('Shot Distance Spread', color = cNoFocus)
+g.set_xlabel('Shot Made/Missed', size = 'large', color = cNoFocus)
+g.set_ylabel('Shot Distance (ft)', size = 'large', color = cNoFocus)
+g.set_xticks(['Missed', 'Made'])
+g.tick_params( colors=cNoFocus)
+g.spines['bottom'].set_color(cNoFocus)
+g.spines['top'].set_color(cNoFocus)
+g.spines['left'].set_color(cNoFocus)
+g.spines['right'].set_color(cNoFocus)
+g.xaxis.label.set_color(cNoFocus)
+g.yaxis.label.set_color(cNoFocus)
+
+
+g = sns.countplot(
+        x='season_count',
+        # y='shot_made_flag',
+        data=d2,
+        # showmeans=True,
+        )
+g.set_title('Shot Distance Spread', color = cNoFocus)
+g.set_xlabel('Shot Made/Missed', size = 'large', color = cNoFocus)
+g.set_ylabel('Shot Distance (ft)', size = 'large', color = cNoFocus)
+g.set_xticks(['Missed', 'Made'])
+g.tick_params( colors=cNoFocus)
+g.spines['bottom'].set_color(cNoFocus)
+g.spines['top'].set_color(cNoFocus)
+g.spines['left'].set_color(cNoFocus)
+g.spines['right'].set_color(cNoFocus)
+# g.xaxis.label.set_color(cNoFocus)
+# g.yaxis.label.set_color(cNoFocus)
+
+
+#! TODO: Add plots with CIs
+#! TODO: Add ROC plot
+
+data = model.test_x.join(model.test_y).head(100)
+cols = data[['shot_distance', 'angle_from_basket', 'lat', 'lon']].columns.sort_values().tolist()
+ncols = len(cols)
+
+nchartrows = 3
+
+f, axarr = plt.subplots(int(np.ceil(ncols/2)), int(np.floor(ncols/2)), figsize=(15, 15))
+for idx, feature in enumerate(cols):
+        i = int(np.floor(idx/nchartrows))
+        j = idx%nchartrows
+        print('{} : {}'.format(i, j))
+        sns.boxplot(
+            y = feature,
+            x ='shot_made_flag',
+            data=data,
+            showmeans=True,
+            ax=axarr[i, j]
+            )
 
 """
 
@@ -275,6 +360,17 @@ seconds_left_in_game   1.0001    0.0000  2.2072 0.0273  1.0000  1.0001
 
 """
 
+
+
+""" #! Interpretation
+The p value is calculated based on the assumption that the null hypothesis is true.
+
+I think about it this way: “assuming the null hypothesis is true, the probability of the observed test statistic occurring is 0.02. That’s not very probable. But the observed test statistic definitely occurred, because it was observed. Therefore, it seems more likely that the null hypothesis is not true, i.e. It should be rejected.”
+
+Assuming the null hypothesis is true, the probability of measuring at least the observed test occurring is 0.02.”
+
+"""
+
 pdf_test_x = sm2.pdf(model2.test_x)
 
 """ Refine Model 2 """
@@ -332,14 +428,13 @@ lda_x = lda.transform(model2.train_x)
 z = lda.transform(model2.test_x)
 z_labels = lda.predict(model2.test_x)
 
-
 log_loss(model2.test_y, z)
 
 
 """############# Model 5 #############"""
 
 """Dataset: d5 | Prediction set: d5_pred
-    - Allen's Model
+    - shot_distance only predictor
 """
 
 d5 = DATA[[DEPENDENT, 'shot_distance']]
@@ -350,12 +445,37 @@ d5 = sm.add_constant(d5)
 model5 = LogR(d5, DEPENDENT)
 model5.sm = model5.statsmodel()
 
-model5.yhat = model.sm.predict(model.test_x)
+model5.yhat = model5.sm.predict(model.test_x)
 
 model5 = LogRegModel(d5)
 s5 = model5.sm.summary2()
 
 OR = np.exp(s5.tables[1]['Coef.'])
+
+
+"""############# Model 6 - Log Loss: 0.669 #############"""
+
+"""Dataset: d6 | Prediction set: d6_pred
+    - Allen's model 5
+"""
+
+d6 = DATA[[DEPENDENT, 'shot_distance', 'playoffs', 'arena_temp', 'game_event_id', 'lat', 'lon']]
+
+"""Fit d6"""
+# d5 = sm.add_constant(d5)
+# model5 = LogR(d5, DEPENDENT)
+
+
+model6 = LogRegModel(d6)
+s6 = model6.sm.summary2()
+
+
+OR = np.exp(s6.tables[1]['Coef.'])
+
+plot_confusion_matrix(model6)
+
+model6.sensitivity()
+model6.specificity()
 
 
 #! Data Overview
@@ -364,6 +484,13 @@ OR = np.exp(s5.tables[1]['Coef.'])
     # QQ
     # Hist
 
+d6
+
+
+d = d6 .select_dtypes(np.number)
+
+
+# cNoFocus = "red"
 
 
 #? Correlation Matrix
@@ -371,19 +498,31 @@ OR = np.exp(s5.tables[1]['Coef.'])
 
 DATA.shape
 
+#! better model was at the cost of explainability and violation of parsimony
 
 """
 •	The __odds of Kobe making a shot decrease with respect to the distance he is from the hoop__.  If there is evidence of this, quantify this relationship.  (CIs, plots, etc.)
 
 #! Yes. His odds go down by  -1.87% +-.85 %  (-2.72% -1.01%) for every additional foot away from the basket.
+"""
 
-
-
+"""
 •	The __probability of Kobe making a shot decreases linearly with respect to the distance he is from the hoop__.    If there is evidence of this, quantify this relationship.  (CIs, plots, etc.)
 
 #! It doesn't. Show pdf plot.
 
+Linear up to 23ft, but is not at zero at 23ft, so probability curve must be curved.
+
+
+"""
+
+
+
+"""
 •	The relationship between the __distance Kobe is from the basket and the odds of him making the shot is different if they are in the playoffs__.  Quantify your findings with statistical evidence one way or the other. (Tests, CIs, plots, etc.) 
+
+#!
+
 """
 
 
@@ -393,6 +532,9 @@ Odds ratios that are greater than 1 indicate that the event is more likely to oc
 https://www.predictiveanalyticsworld.com/patimes/on-variable-importance-in-logistic-regression/9649/
 
 #! The model indicates a 4.25% increase in shooting ability during the playoffs, however, the result was not statistically significant.
+
+CI's overlap and contain zero. zome evidence but not enough to conclude there is a difference.
+
 
 """
 
@@ -406,4 +548,47 @@ https://www.predictiveanalyticsworld.com/patimes/on-variable-importance-in-logis
 # model.confusion_matrix()
 # model.roc_plot()
 
+"""
+varsA
 
+shot_distance
+playoffs
+arena_temp
+game_event_id
+lat
+lon
+
+
+VarsB
+
+shot_distance
+playoffs
+arena_temp
+period
+attendance
+avgnoisedb
+minutes_remaining
+seconds_remaining
+
+
+Model2
+shot_distance
+playoffs
+arena_temp
+lat
+lon
+attendances
+avgnoisedb
+seconds_remaining
+seconds_left_in_period
+last_seconds_of_period
+seconds_left_in_game
+home_or_away
+num_shots_cumulative
+angle_from_basket
+season_count
+combined_shot_type
+opponent
+
+
+"""
