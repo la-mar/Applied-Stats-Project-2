@@ -12,11 +12,6 @@ from confusion_matrix_pretty import *
 import statsmodels.api as sm
 from sklearn.metrics import confusion_matrix
 
-# m2b = LogR(d2, DEPENDENT)
-# a = LogisticRegression(fit_intercept = True, C = 1e8)
-# a.fit(m2b.train_x, m2b.train_y)
-# a.score(m2b.test_x, m2b.test_y)
-
 class LogR(LogisticRegression):
     """Sparse extension of sklearn.linear_model.LogisticRegression.
 
@@ -177,7 +172,6 @@ class LogR(LogisticRegression):
 
         return sm.Logit(self.train_y, self.train_x).fit()
 
-
     def statsmodel_(self):
         """Model using statsmodels library.
 
@@ -187,13 +181,15 @@ class LogR(LogisticRegression):
         """
 
         return sm.Logit(self.train_y, self.train_x)
+
+
     def roc_plot(self, sm = True):
         """
         Referenced from:
         https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html#sphx-glr-auto-examples-model-selection-plot-roc-crossval-py
         """
 
-        y_score = self.decision_function(self.test_x)
+        y_score = self.predict_labels(self.test_x)
 
         fpr, tpr, _ = roc_curve(self.test_y, y_score)
 
@@ -217,7 +213,7 @@ class LogR(LogisticRegression):
         """Predict class labels"""
 
         self.yhat = self.sm.fitted.predict(x)
-        pc = np.zeros(self.yhat)
+        pc = np.zeros(len(self.yhat))
         pc[self.yhat > thresh] = 1
         return pc
 

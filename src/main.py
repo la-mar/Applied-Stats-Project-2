@@ -158,13 +158,14 @@ d2 = get_dummies(d2).fillna(0) # Get dummy variables for categoricals
 """Fit d2"""
 model2 = LogRegModel(d2)
 summarize_model(model2)
-model2.sm.summary2()
 model2.sm2 = model2.statsmodel_()
-model2.sm2.fitted = model2.sm2.fit()
-model2.sm2.fitted.predict(model2.test_x)
+model2.sm.fitted = model2.sm2.fit()
+# model2.sm.summary2()
+# model2.sm2.fitted.predict(model2.test_x)
+model2.roc_plot()
 
-pdf_train_x = sm2.pdf(model2.train_x)
-cdf_train_x = sm2.cdf(model2.train_x)
+pdf_train_x = model2.sm2.pdf(model2.train_x)
+cdf_train_x = model2.sm2.cdf(model2.train_x)
 
 result = model2.sm.summary2()
 odds = result.tables[1]
@@ -172,17 +173,31 @@ odds[['Coef.','[0.025', '0.975]']] = np.exp(odds[['Coef.','[0.025', '0.975]']])
 odds[['Coef.','[0.025', '0.975]']] = (odds[['Coef.','[0.025', '0.975]']] - 1) * 100
 
 
-#! COV
-missed = np.cov(d1[d1.shot_made_flag == 0])
-made = np.cov(d1[d1.shot_made_flag == 1])
-pd.concat([pd.DataFrame(made), pd.DataFrame(missed)])
+
+
+stats.probplot(a, plot=sns.mpl.pyplot)
+
+
+def quantile_plot(x, **kwargs):
+    qntls, xr = stats.probplot(x, fit=False)
+    plt.scatter(xr, qntls, **kwargs)
+
+def qqplot(x, y, **kwargs):
+    _, xr = stats.probplot(x, fit=False)
+    _, yr = stats.probplot(y, fit=False)
+    plt.scatter(xr, yr, **kwargs)
+
+
+
+g = sns.FacetGrid(d2, col="playoffs", height=4)
+g.map(quantile_plot, "shot_distance");
+
+g = sns.PairGrid(data)
+g.map(qqplot)
+
 
 corr_matrix(wrangle_features(DATA.drop(columns = ['action_type'])))
-# sns.lineplot(x = pdf_train_x)
-# probplot = sm.ProbPlot(model2.train_x)
-# probplot.qqplot(line='45')
-# pp_x.qqplot(line='45', other=pp_y)
-sns.set_style("whitegrid")
+
 
 color = '#ffffff'
 g = sns.regplot(x=model2.test_x.shot_distance, y=model2.test_y, logistic=True)
@@ -195,6 +210,33 @@ g.yaxis.label.set_color(color)
 g.tick_params(axis='x', colors=color)
 g.tick_params(axis='y', colors=color)
 g.set_title('Predicted Probabilities for shot_made_flag', color = color)
+
+# NOTE: START HERE
+#! ROC PLOT
+y_score = model2.predict_labels(model2.test_x)
+
+fpr, tpr, _ = roc_curve(model2.test_y, y_score)
+
+roc_auc = auc(fpr, tpr)
+plt.plot(fpr, tpr, lw=1, alpha=1,
+            label='ROC (AUC = %0.2f)' % (roc_auc))
+
+plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
+        label='Chance', alpha=.8)
+
+plt.xlim([-0.05, 1.05])
+plt.ylim([-0.05, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic')
+plt.legend(loc="lower right")
+plt.show()
+
+
+
+
+
+
 
 
 predicted = model2.sm.predict(model2.test_x)

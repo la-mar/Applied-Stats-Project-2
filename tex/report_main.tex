@@ -1,0 +1,46 @@
+
+% BCOR is binding correction
+%11pt font, 1in margins
+\documentclass[11pt, a4paper, BCOR=10mm, english]{scrbook}
+
+% include all packages and define commands in setup.tex
+\input{setup}
+
+\begin{document}
+    \pagestyle{empty} % no header and no page number
+    % disable hyper links to remove warning "destination with same identifier"
+    % this means within this section nothing can be referenced with a hyperlink
+    \hypersetup{pageanchor=false}
+    \include{chapters/0_0-titlepage}
+    \pagestyle{plain} % remove chapter name from top, page number at the bottom
+    \frontmatter  % roman page numbers
+
+    \include{chapters/0_1-abstract}
+    \tableofcontents
+    \listoffigures
+    \listoftables
+    \listofalgorithms
+    \hypersetup{pageanchor=true}  % re-enable hyperlinking
+
+    \mainmatter  % Arabic page numbers
+    \include{chapters/1-introduction}
+    % \include{chapters/2-background} % Debatably not needed
+    \include{chapters/3-approach}
+    \include{chapters/4-methods}
+    \include{chapters/5-conclusions}
+    \include{chapters/6-discussion}
+    \include{chapters/7-appendix}
+    \addappheadtotoc
+    % bibliography is not in the table of contents per default, add it manually
+    % \addcontentsline{toc}{chapter}{Bibliography}
+    % \bibliographystyle{ieeetr} % IEEE
+    % \bibliography{bib/topic1,bib/topic2}
+    % \newpage
+    % \thispagestyle{empty}
+    % \mbox{}
+
+
+
+\end{document}
+
+

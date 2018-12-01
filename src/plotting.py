@@ -291,8 +291,6 @@ def plot_feature_boxplots(model):
     plt.show()
 
 
-
-
 def pairplot(x: pd.DataFrame = None, model = None):
 
     if model is not None:
@@ -321,141 +319,141 @@ def plot_redundants():
 
 
 if __name__ == "__main__":
-
+    pass
     #! QQ plot
     # sm.qqplot(DATA.arena_temp, stats.t, fit=True, line='45')
 
 
-    g = sns.boxplot(x="variable", y="value", data=pd.melt(d1))
-    g.set_xticklabels(g.get_xticklabels(), rotation=30)
-    plt.tight_layout()
+    # g = sns.boxplot(x="variable", y="value", data=pd.melt(DATA))
+    # g.set_xticklabels(g.get_xticklabels(), rotation=30)
+    # plt.tight_layout()
 
 
-    data = model2.test_x.join(model2.test_y)
+    # data = model2.test_x.join(model2.test_y)
 
-    g = sns.FacetGrid(
-                data,
-                col='playoffs',
-                # row='shot_made_flag',
-                hue='playoffs',
-                # col_wrap = 5,
-                height = 3
-                )
-    g = g.map(sns.regplot,
-            x = 'shot_distance',
-            y = 'shot_made_flag',
-            data = data,
-            logistic = True
-            # bins = 25,
-            # fit = norm,
-            # kde_kws={"color": "red", "lw": 1, "label": "KDE"}
-            )
+    # g = sns.FacetGrid(
+    #             data,
+    #             col='playoffs',
+    #             # row='shot_made_flag',
+    #             hue='playoffs',
+    #             # col_wrap = 5,
+    #             height = 3
+    #             )
+    # g = g.map(sns.regplot,
+    #         x = 'shot_distance',
+    #         y = 'shot_made_flag',
+    #         data = data,
+    #         logistic = True
+    #         # bins = 25,
+    #         # fit = norm,
+    #         # kde_kws={"color": "red", "lw": 1, "label": "KDE"}
+    #         )
 
-    # g.title = 'Regular and Post Season Shot Distance'
+    # # g.title = 'Regular and Post Season Shot Distance'
 
-    temp.melt(id_vars = ['seconds_left_in_period']).groupby(['seconds_left_in_period', 'value']).count()
+    # temp.melt(id_vars = ['seconds_left_in_period']).groupby(['seconds_left_in_period', 'value']).count()
 
-    temp.set_index('seconds_left_in_period').pivot(columns = 'shot_made_flag')
+    # temp.set_index('seconds_left_in_period').pivot(columns = 'shot_made_flag')
 
-    # g.set_xticklabels( np.linspace(1, 10, num = 10))
+    # # g.set_xticklabels( np.linspace(1, 10, num = 10))
 
-    # target_feature = data.shot_distance
+    # # target_feature = data.shot_distance
 
-    # indicator = data.shot_made_flag
+    # # indicator = data.shot_made_flag
 
-    # sns.distplot(target_feature)
-
-
-    # d = data
-    # d['shots_last10sec']
+    # # sns.distplot(target_feature)
 
 
-    #! Most outliers are at or near 0 secords left in the current period
-    g = sns.countplot(
-        x = 'seconds_left_in_period',
-        # y = 'shot_made_flag',
-        hue = 'shot_made_flag',
-        # col='period',
-        data = data[data.seconds_left_in_period <= 15]
-        )
+    # # d = data
+    # # d['shots_last10sec']
 
-    temp = data[['seconds_left_in_period', 'shot_made_flag']][data.seconds_left_in_period <= 15]
-    # temp['shot_made_%'] =
 
-    g = sns.countplot(
-        x = 'seconds_left_in_period',
-        # y = 'shot_made_flag',
-        hue = 'shot_made_flag',
-        # col='period',
-        data = temp
-        )
+    # #! Most outliers are at or near 0 secords left in the current period
+    # g = sns.countplot(
+    #     x = 'seconds_left_in_period',
+    #     # y = 'shot_made_flag',
+    #     hue = 'shot_made_flag',
+    #     # col='period',
+    #     data = data[data.seconds_left_in_period <= 15]
+    #     )
+
+    # temp = data[['seconds_left_in_period', 'shot_made_flag']][data.seconds_left_in_period <= 15]
+    # # temp['shot_made_%'] =
+
+    # g = sns.countplot(
+    #     x = 'seconds_left_in_period',
+    #     # y = 'shot_made_flag',
+    #     hue = 'shot_made_flag',
+    #     # col='period',
+    #     data = temp
+    #     )
 
     #! Made/Missed by combined_action_type by season
 
     # sns.boxplot(x = indicator, y = shots_last10seconds)
 
-    sns.distplot(data.seconds_left_in_period, bins = 10)
+    # sns.distplot(data.seconds_left_in_period, bins = 10)
     # sns.countplot(shots_last10seconds, hue = indicator)
 
 
-    """
-    lat                             float64
-    lon                             float64
-    playoffs                          int64
-    seconds_remaining                 int64
-    shot_distance                     int64
-    shot_made_flag                    int64
-    game_date                         int64
-    attendance                        int64
-    arena_temp                        int64
-    avgnoisedb                      float64
-    seconds_left_in_period            int64
-    seconds_left_in_game              int64
-    home_or_away                      int32
-    num_shots_cumulative              int64
-    angle_from_basket               float64
-    season_count                       int8
-    last_seconds_of_period            int32
-    """
+#     """
+#     lat                             float64
+#     lon                             float64
+#     playoffs                          int64
+#     seconds_remaining                 int64
+#     shot_distance                     int64
+#     shot_made_flag                    int64
+#     game_date                         int64
+#     attendance                        int64
+#     arena_temp                        int64
+#     avgnoisedb                      float64
+#     seconds_left_in_period            int64
+#     seconds_left_in_game              int64
+#     home_or_away                      int32
+#     num_shots_cumulative              int64
+#     angle_from_basket               float64
+#     season_count                       int8
+#     last_seconds_of_period            int32
+#     """
 
 
 
-"""
-recId                               int64
-action_type                      category
-combined_shot_type               category
-game_event_id                       int64
-game_id                             int64
-lat                               float64
-loc_x                               int64
-loc_y                               int64
-lon                               float64
-minutes_remaining                   int64
-period                              int64
-playoffs                            int64
-season                           category
-seconds_remaining                   int64
-shot_distance                       int64
-shot_made_flag                      int64
-shot_type                        category
-shot_zone_area                   category
-shot_zone_basic                  category
-shot_zone_range                  category
-team_id                             int64
-team_name                        category
-game_date                  datetime64[ns]
-matchup                          category
-opponent                         category
-shot_id                             int64
-attendance                          int64
-arena_temp                          int64
-avgnoisedb                        float64
-seconds_left_in_period              int64
-seconds_elapsed_in_game             int64
-seconds_left_in_game                int64
-home_or_away                        int32
-num_shots_cumulative                int64
-angle_from_basket                 float64
-season_count                         int8
-dtype: object
-"""
+# """
+# recId                               int64
+# action_type                      category
+# combined_shot_type               category
+# game_event_id                       int64
+# game_id                             int64
+# lat                               float64
+# loc_x                               int64
+# loc_y                               int64
+# lon                               float64
+# minutes_remaining                   int64
+# period                              int64
+# playoffs                            int64
+# season                           category
+# seconds_remaining                   int64
+# shot_distance                       int64
+# shot_made_flag                      int64
+# shot_type                        category
+# shot_zone_area                   category
+# shot_zone_basic                  category
+# shot_zone_range                  category
+# team_id                             int64
+# team_name                        category
+# game_date                  datetime64[ns]
+# matchup                          category
+# opponent                         category
+# shot_id                             int64
+# attendance                          int64
+# arena_temp                          int64
+# avgnoisedb                        float64
+# seconds_left_in_period              int64
+# seconds_elapsed_in_game             int64
+# seconds_left_in_game                int64
+# home_or_away                        int32
+# num_shots_cumulative                int64
+# angle_from_basket                 float64
+# season_count                         int8
+# dtype: object
+# """
