@@ -311,6 +311,8 @@ INPUT chapters/4-methods.aux
 INPUT chapters/4-methods.aux
 INPUT chapters/5-conclusions.aux
 INPUT chapters/5-conclusions.aux
+INPUT chapters/6-discussion.aux
+INPUT chapters/6-discussion.aux
 INPUT chapters/7-appendix.aux
 INPUT chapters/7-appendix.aux
 OUTPUT report_main.aux
@@ -497,6 +499,9 @@ INPUT ../figs/plot_regular_vs_post_season.png
 INPUT ../figs/plot_regular_vs_post_season.png
 INPUT ../figs/plot_regular_vs_post_season.png
 INPUT ../figs/plot_regular_vs_post_season.png
+OUTPUT chapters/6-discussion.aux
+INPUT chapters/6-discussion.tex
+INPUT chapters/6-discussion.tex
 OUTPUT chapters/7-appendix.aux
 INPUT chapters/7-appendix.tex
 INPUT chapters/7-appendix.tex
@@ -567,6 +572,8 @@ INPUT chapters/4-methods.aux
 INPUT chapters/4-methods.aux
 INPUT chapters/5-conclusions.aux
 INPUT chapters/5-conclusions.aux
+INPUT chapters/6-discussion.aux
+INPUT chapters/6-discussion.aux
 INPUT chapters/7-appendix.aux
 INPUT chapters/7-appendix.aux
 INPUT ./report_main.out
@@ -605,8 +612,6 @@ INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb
 INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb
 INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy6.pfb
 INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy6.pfb
-INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy8.pfb
-INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy8.pfb
 INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtk10.pfb
 INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtk10.pfb
 INPUT C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb
