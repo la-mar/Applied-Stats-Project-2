@@ -1,63 +1,76 @@
-/* import data */
+/* MSDS 6371 - Applied Statistics  */
+/* Allen Crane and Brock Friedrich */
+/* Kobe Bryant Shot Selection      */
+/* November 2018                   */
 
-proc import datafile="c:\users\allen\documents\smu data science\MSDS 6372 - Applied Statistics\project 2\project2Data.csv"
+/* import data */
+proc import datafile="c:\users\allen\documents\smu data science\MSDS 6372 - Applied Statistics\project 2\project2Data.csv"  
           dbms=dlm out=train replace;
      delimiter=',';
      getnames=yes;
 run;
 
+/* print data */
 proc print data=train (obs=10);
 run;
 
+/* investigate data for variable types*/
 proc contents data=train;
 run;
 
+/* look for missing numeric data - may need to impute */
 proc means data = train n nmiss;
   var _numeric_;
 run;
 
+/* investigate means of training data and any missing values */
 proc means data = train n nmiss;
 run;
 
+/* univariate data analysis */
 proc univariate data = train;
 var season;
 run;
 
+/* note that certain "season" fields are missing */
 Data _season;
     set train;
     where missing (season);
 run;
 
+/* print "season" data, where "season" is missing */
 proc print data=_season (obs=200);
 run;
 
 
+/* more univariate data analysis */
 ods graphics on;
 proc univariate data = train plot;
-var recId
-game_event_id
-game_id
-lat
-loc_x
-loc_y
-lon
-minutes_remaining
-period
-playoffs
-season
-seconds_remaining
-shot_distance
-shot_made_flag
-team_id
-game_date
-shot_id
-attendance
-arena_temp
-avgnoisedb
+var recId 
+game_event_id 
+game_id 
+lat 
+loc_x 
+loc_y 
+lon 
+minutes_remaining 
+period 
+playoffs 
+season 
+seconds_remaining 
+shot_distance 
+shot_made_flag 
+team_id 
+game_date 
+shot_id 
+attendance 
+arena_temp 
+avgnoisedb 
 ;
 run;
 ods graphics off;
 
+/* create a time-based variable, concatenating Period, minutes remaining, and seconds remaining, in descending order. This one is for Periods remaining... */
 data train2;
   set train;
       if period = 1 then periods_remaining2 = "14";
@@ -70,9 +83,11 @@ data train2;
 	  else periods_remaining2 = period;
 run;
 
+/* print data */
 proc print data=train2 (obs=10);
 run;
 
+/* Minutes remaining... */
 data train2;
   set train2;
       if minutes_remaining = 11 then minutes_remaining2 = "99";
@@ -90,9 +105,11 @@ data train2;
 	  else minutes_remaining2 = minutes_remaining;
 run;
 
+/* print data */
 proc print data=train2 (obs=10);
 run;
 
+/* Seconds remaining... */
 data train2;
   set train2;
       if seconds_remaining = 59 then seconds_remaining2 = "99";
@@ -158,28 +175,38 @@ data train2;
 else seconds_remaining2 = seconds_remaining;
 run;
 
+/* print data */
 proc print data=train2 (obs=10);
 run;
 
+/* concatenante data */
 data train2;
 set train2;
 pms_remaining = cat(periods_remaining2, minutes_remaining2, seconds_remaining2);
 run;
 
+/* print data */
 proc print data=train2 (obs=10);
 run;
 
+/* make field numeric (some components contained leading zeroes */
 data train2;
 set train2;
    n_pms_remaining = input(pms_remaining,8.);
 run;
+
+/* drop original non-numeric concetenanted data field */
 data train2;
-set train2 (drop = pms_remaining);
+set train2 (drop = pms_remaining); 
 run;
 data train2;
-set train2 (rename=(
+
+/* rename new numeric concatenated data field  */
+set train2 (rename=( 
 'n_pms_remaining'n='pms_remaining'n));
 run;
+
+/* print data */
 proc print data=train2 (obs=10);
 run;
 
@@ -187,28 +214,30 @@ run;
 
 
 
-
+/* check data - histogram */
 ods graphics on;
 proc univariate data = train2;
 var pms_remaining;
 histogram;
-run;
+run; 
 ods graphics off;
 
-
+/* check data - scatter plot */
 proc sgplot data=train2;
    scatter x=pms_remaining y=shot_made_flag / group=shot_made_flag;
 run;
 
 
 
-
+/* transform data - log transformation on shot distance and time remaining */
 data train3;
 set train2;
 l_shot_distance = log(shot_distance);
 l_pms_remaining = log(pms_remaining);
 run;
 
+
+/* check data - scatter plot */
 ods graphics on;
 proc univariate data = train3 plot;
 var l_shot_distance l_pms_remaining;
@@ -218,93 +247,350 @@ ods graphics off;
 
 
 
+/* correlation analysis */
+ods graphics on; 
+proc corr data=train2 plots=matrix(histogram);                                                                                                                
+var recId 
+game_event_id 
+game_id 
+lat 
+loc_x 
+loc_y 
+lon 
+minutes_remaining 
+period 
+playoffs 
+season 
+seconds_remaining 
+shot_distance 
+shot_made_flag 
+team_id 
+game_date 
+shot_id 
+attendance 
+arena_temp 
+avgnoisedb;                                                                                                                    
+run; 
+ods graphics off;
+
+
+
+/* principal component analysis */
 ods graphics on;
-proc corr data=train2 plots=matrix(histogram);
-var recId
-game_event_id
-game_id
-lat
-loc_x
-loc_y
-lon
-minutes_remaining
-period
-playoffs
-season
-seconds_remaining
-shot_distance
-shot_made_flag
-team_id
-game_date
-shot_id
-attendance
-arena_temp
+proc princomp plots=all data=train2 cov out=pca;                                                                                                              
+var recId 
+game_event_id 
+game_id 
+lat 
+loc_x 
+loc_y 
+lon 
+minutes_remaining 
+period 
+playoffs 
+season 
+seconds_remaining 
+shot_distance 
+shot_made_flag 
+team_id 
+game_date 
+shot_id 
+attendance 
+arena_temp 
 avgnoisedb;
 run;
 ods graphics off;
 
 
-
-ods graphics on;
-proc princomp plots=all data=train2 cov out=pca;
-var recId
-game_event_id
-game_id
-lat
-loc_x
-loc_y
-lon
-minutes_remaining
-period
-playoffs
-season
-seconds_remaining
-shot_distance
-shot_made_flag
-team_id
-game_date
-shot_id
-attendance
-arena_temp
-avgnoisedb;
-run;
-ods graphics off;
-
-proc corr data=pca plots=matrix(histogram);
-      var shot_made_flag prin1 - prin10;
+/* correlation analysis using train2 data vs shot made flag */
+proc corr data=train2 plots=matrix(histogram);                                                                                                              
+      var shot_made_flag game_event_id lat loc_y minutes_remaining period seconds_remaining shot_distance attendance arena_temp avgnoisedb;                                                                                                                             
       run;
 
 
+/* correlation analysis using pricipal components vs shot made flag */
+proc corr data=pca plots=matrix(histogram);                                                                                                              
+      var shot_made_flag prin1 - prin10;                                                                                                                             
+      run;
+
+
+/* model 1 - GLM select using PCA */
 proc glmselect data=pca plots=all seed=3;
-model shot_made_flag=prin1-prin10 / selection = stepwise(choose=CV select=CV stop=CV);
+model shot_made_flag =prin1-prin10 / selection = stepwise(choose=CV select=CV stop=CV);
 run;
 
-/*11-5-18 */
 
+/* model 2 - Logistic using PCA */
 ods graphics on;
 proc logistic data=pca plots(only)=(roc(id=obs) effect);
   model shot_made_flag (event='1') =prin1-prin10 / scale=none
                             		clparm=wald
                             		clodds=pl
-                            		rsquare;
+                            		rsquare
+									lackfit
+									ctable;
+  output out = model_2_results p = Predict;
 run;
 ods graphics off;
 
 
+/* model 3 - Logistic using train2 dataset (not PCA) only by distance */
 ods graphics on;
 proc logistic data=train2 plots(only)=(roc(id=obs) effect);
   model shot_made_flag (event='1') = shot_distance / scale=none
                             		clparm=wald
                             		clodds=pl
-                            		rsquare;
+                            		rsquare
+									lackfit
+									ctable;
+  output out = model_3_results p = Predict;
 run;
 ods graphics off;
 
+
+/* create data for model 4 - data sets for playoffs and not at playoffs */
+
+data train2_playoffs;
+set train2;
+where playoffs = 1;
+run;
+
+data train2_no_playoffs;
+set train2;
+where playoffs = 0;
+run;
+
+
+/* model 4 - Logistic using train2 dataset (not PCA) during playoffs */
+
 ods graphics on;
-proc logistic data=train2 plots(only)=(roc(id=obs) effect);
-  model shot_made_flag (event='1') = shot_distance playoffs / scale=none
+proc logistic data=train2_no_playoffs plots(only)=(roc(id=obs) effect);
+  model shot_made_flag (event='1') = shot_distance / scale=none
                             		clparm=wald
                             		clodds=pl
-                            		rsquare;
+                            		rsquare
+									lackfit
+									ctable;
+  output out = model_4_results p = Predict;
 run;
 ods graphics off;
+
+
+/* model 5 - Logistic using train2 dataset (not PCA) during playoffs */
+ods graphics on;
+proc logistic data=train2 plots(only)=(roc(id=obs) effect);
+  model shot_made_flag (event='1') = shot_distance playoffs arena_temp game_event_id lat lon / scale=none
+                            		clparm=wald
+                            		clodds=pl
+                            		rsquare
+									lackfit
+									ctable;
+  output out = model_5_results p = Predict;
+run;
+ods graphics off;
+
+
+/* model 6 - Logistic using train2 dataset (not PCA) for all variables that had corr p < 0.0001 */
+ods graphics on;
+proc logistic data=train2 plots(only)=(roc(id=obs) effect);
+  model shot_made_flag (event='1') = shot_distance playoffs period minutes_remaining seconds_remaining attendance arena_temp avgnoisedb / scale=none
+                            		clparm=wald
+                            		clodds=pl
+                            		rsquare
+									lackfit
+									ctable;
+  output out = model_6_results p = Predict;
+run;
+ods graphics off;
+
+
+/* Model 7 - LDA Model */
+
+proc discrim data=train2 outstat=LDAstat method=normal pool=yes
+                list crossvalidate;
+      class shot_made_flag;
+      priors prop;
+      var shot_distance playoffs period minutes_remaining seconds_remaining attendance arena_temp avgnoisedb;
+   run;
+	
+
+
+
+
+
+
+
+
+/* Import test data for prediction model */
+
+/* import test data */
+proc import datafile="c:\users\allen\documents\smu data science\MSDS 6372 - Applied Statistics\project 2\project2pred.csv"  
+          dbms=dlm out=test replace;
+     delimiter=',';
+     getnames=yes;
+run;
+
+/* print data */
+proc print data=test (obs=10);
+run;
+
+/* investigate data for variable types*/
+proc contents data=test;
+run;
+
+/* look for missing numeric data - may need to impute */
+proc means data = test n nmiss;
+  var _numeric_;
+run;
+
+/* investigate means of training data */
+proc means data = test n nmiss;
+run;
+
+/* univariate data analysis */
+proc univariate data = test;
+var season;
+run;
+
+/* note that certain "season" fields are missing */
+Data _seasontest;
+    set test;
+    where missing (season);
+run;
+
+/* print "season" data, where "season" is missing */
+proc print data=_seasontest (obs=200);
+run;
+
+/* add empty predicted response field */
+data test2;
+set test;
+shot_made_flag = .;
+;
+
+/* print data */
+proc print data=test2 (obs=200);
+run;
+
+
+/* Create TRAIN and TEST fields to distinguish test vs train data. Combine data, predict missing values, create final data set */
+
+data train2b;
+set train2;
+file = "TRAIN";
+run;
+
+proc print data=train2b (obs=10);
+run;
+
+data test2b;
+set test2;
+file = "TEST";
+run;
+
+proc print data=test2b (obs=10);
+run;
+
+
+
+
+/* make a numeric shot_made_flag variable in test data */
+
+data test2c;
+set test2b;
+   n_shot_made_flag = input(shot_made_flag,8.);
+run;
+
+/* drop original non-numeric shot_made_flag */
+data test2c;
+set test2c (drop = shot_made_flag); 
+run;
+
+/* rename numeric shot_made_flag */
+data test2c;
+set test2c (rename=( 
+'n_shot_made_flag'n='shot_made_flag'n));
+run;
+
+/* drop the n_shot_made_flag variable */
+data test2c;
+set test2c (drop = shot_made_flag); 
+run;
+
+/* rename rannum variable to recId */
+data test2c;
+set test2c (rename=( 
+'rannum'n='recId'n));
+run;
+
+
+
+/* combine data sets */
+
+data test3;
+set train2b test2c;
+run;
+
+proc print data=test3 (obs=10);
+run;
+
+proc contents data=test3;
+run;
+
+
+/* predict response field (shot_made_flag) using desired method */
+ods graphics on;
+proc logistic data=test3 plots(only)=(roc(id=obs) effect);
+  model shot_made_flag (event='1') = shot_distance playoffs period minutes_remaining seconds_remaining attendance arena_temp avgnoisedb / scale=none
+                            		clparm=wald
+                            		clodds=pl
+                            		rsquare
+									lackfit
+									ctable;
+output out = model_test_results p = Predict;
+run;
+ods graphics off;
+
+
+/* check data for completeness */
+
+proc means data = results n nmiss;
+  var _numeric_;
+run;
+
+proc print data=results (obs=10);
+where file = "TEST"; 
+run;
+
+proc contents data=results; 
+run;
+
+proc means data=results
+	N Mean Std Min Q1 Median Q3 Max;
+run; 
+
+/* This is the final step that maps the predicted value into the shot_made_flag variable
+and then drops all variables except shot_id and shot_made_flag. */
+
+data results_final;
+retain shot_id shot_made_flag;
+set results;
+if shot_made_flag < 1 then shot_made_flag = predict;
+keep shot_id shot_made_flag;
+where file = "TEST"; 
+run;
+
+proc print data=results_final (obs=100);
+run;
+
+proc contents data=results_final; 
+run;
+
+
+
+
+
+
+
+
+
