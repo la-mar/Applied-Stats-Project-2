@@ -14,19 +14,19 @@
 	<![CDATA[
 		.st1 {stroke:#02e83c;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st2 {stroke:#ffff00;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
-		.st3 {fill:#7f7f7f;stroke:#00b0f0;stroke-linecap:round;stroke-linejoin:round;stroke-width:3}
-		.st4 {fill:#ffffff;font-family:Calibri Light;font-size:1.16666em}
-		.st5 {fill:#7f7f7f;stroke:#02e83c;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st3 {fill:#ffffff;stroke:#00b0f0;stroke-linecap:round;stroke-linejoin:round;stroke-width:3}
+		.st4 {fill:#000000;font-family:Calibri Light;font-size:1.16666em}
+		.st5 {fill:#ffffff;stroke:#02e83c;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st6 {stroke:#ff8c00;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st7 {fill:none;stroke:#a5a5a5;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:0.5;stroke-width:1}
 		.st8 {fill:#00b0f0;font-family:Calibri Light;font-size:1.16666em;font-weight:bold}
 		.st9 {fill:none;stroke:#00b0f0;stroke-linecap:round;stroke-linejoin:round;stroke-width:3}
-		.st10 {fill:#7f7f7f;stroke:#ff8c00;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
-		.st11 {fill:#ffffff;font-family:Calibri Light;font-size:1.16666em;font-weight:bold}
+		.st10 {fill:#ffffff;stroke:#ff8c00;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st11 {fill:#000000;font-family:Calibri Light;font-size:1.16666em;font-weight:bold}
 		.st12 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st13 {fill:#ff0606;font-family:Calibri;font-size:1.00001em;font-weight:bold}
 		.st14 {fill:#00b0f0;font-family:Calibri;font-size:1.00001em;font-weight:bold}
-		.st15 {fill:#7f7f7f;stroke:#ffff00;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st15 {fill:#ffffff;stroke:#ffff00;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st16 {fill:none;stroke:#ff8c00;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
 		.st17 {font-size:1em}
 		.st18 {fill:none;stroke:#ffff00;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}

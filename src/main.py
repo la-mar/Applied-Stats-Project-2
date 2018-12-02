@@ -101,6 +101,32 @@ REDUNDANT_FEATURES = [
 
 
 
+def to_latex(df):
+    pd.set_option('display.float_format', lambda x: '%.0f' % x)
+    with open('temp.txt', 'w') as f:
+        f.write(r'\resizebox{\textwidth}{!}{'+
+            df.to_latex()
+            + r'}\captionof{table}{Feature Summary}\label{tbl:featuresummary}')
+    pd.set_option('display.float_format', lambda x: '%.4f' % x)
+
+
+def desc(df: pd.DataFrame):
+	"""Produces a summary of the input DataFrame
+
+	Arguments:
+		df {pd.DataFrame} -- [description]
+
+	Returns:
+		pd.DataFrame -- DataFrame of summary statistics
+	"""
+
+	desc = df.describe(percentiles = None).T
+	desc['missing'] = len(df.index) - desc['count']
+	# desc = desc.astype('int')
+	desc['median'] = df.median()
+	desc['missing %'] = desc.missing / len(df.index) * 100
+	return desc.T
+
 """############# Model 0 - Predicted Log Loss: 0.6552 #############"""
 
 
@@ -151,191 +177,40 @@ d2 = prepare_data(DATA, drop_columns= REDUNDANT_FEATURES)
 # d2.game_date = d2.game_date.apply(lambda x: x.toordinal())
 # d2.last_seconds_of_period = d2.last_seconds_of_period.astype(int)
 d2 = get_dummies(d2).fillna(0) # Get dummy variables for categoricals
-# d2_pred = wrangle_features(FOR_PREDICTION)
-# d2_pred = get_dummies(d2_pred).fillna(0) # Get dummy variables for categoricals
-# d2_pred = d2_pred[cols(d2)]
+d2_pred = wrangle_features(FOR_PREDICTION)
+d2_pred = get_dummies(d2_pred).fillna(0) # Get dummy variables for categoricals
+d2_pred = d2_pred[cols(d2)]
 
 """Fit d2"""
 model2 = LogRegModel(d2)
 summarize_model(model2)
 model2.sm2 = model2.statsmodel_()
-model2.sm.fitted = model2.sm2.fit()
+model2.sm2.fitted = model2.sm2.fit()
 # model2.sm.summary2()
-# model2.sm2.fitted.predict(model2.test_x)
-model2.roc_plot()
+model2.sm2.fitted.predict(model2.test_x)
+# pd.Series(model2.predict_labels(d2_pred)).set_index(d2_pred.sho)
+# model2.roc_plot()
 
 pdf_train_x = model2.sm2.pdf(model2.train_x)
 cdf_train_x = model2.sm2.cdf(model2.train_x)
 
 result = model2.sm.summary2()
-odds = result.tables[1]
-odds[['Coef.','[0.025', '0.975]']] = np.exp(odds[['Coef.','[0.025', '0.975]']])
-odds[['Coef.','[0.025', '0.975]']] = (odds[['Coef.','[0.025', '0.975]']] - 1) * 100
-
-
-
-
-stats.probplot(a, plot=sns.mpl.pyplot)
-
-
-def quantile_plot(x, **kwargs):
-    qntls, xr = stats.probplot(x, fit=False)
-    plt.scatter(xr, qntls, **kwargs)
-
-def qqplot(x, y, **kwargs):
-    _, xr = stats.probplot(x, fit=False)
-    _, yr = stats.probplot(y, fit=False)
-    plt.scatter(xr, yr, **kwargs)
-
-
-
-g = sns.FacetGrid(d2, col="playoffs", height=4)
-g.map(quantile_plot, "shot_distance");
-
-g = sns.PairGrid(data)
-g.map(qqplot)
+logodds = result.tables[1]
+odds[['Coef.','[0.025', '0.975]']] = np.exp(logodds[['Coef.','[0.025', '0.975]']])
+pct_change = (odds[['Coef.','[0.025', '0.975]']] - 1) * 100
 
 
 corr_matrix(wrangle_features(DATA.drop(columns = ['action_type'])))
-
-
-color = '#ffffff'
-g = sns.regplot(x=model2.test_x.shot_distance, y=model2.test_y, logistic=True)
-g.spines['bottom'].set_color(color)
-g.spines['top'].set_color(color)
-g.spines['left'].set_color(color)
-g.spines['right'].set_color(color)
-g.xaxis.label.set_color(color)
-g.yaxis.label.set_color(color)
-g.tick_params(axis='x', colors=color)
-g.tick_params(axis='y', colors=color)
-g.set_title('Predicted Probabilities for shot_made_flag', color = color)
-
-# NOTE: START HERE
-#! ROC PLOT
-y_score = model2.predict_labels(model2.test_x)
-
-fpr, tpr, _ = roc_curve(model2.test_y, y_score)
-
-roc_auc = auc(fpr, tpr)
-plt.plot(fpr, tpr, lw=1, alpha=1,
-            label='ROC (AUC = %0.2f)' % (roc_auc))
-
-plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
-        label='Chance', alpha=.8)
-
-plt.xlim([-0.05, 1.05])
-plt.ylim([-0.05, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc="lower right")
-plt.show()
-
-
-
-
-
-
-
-
-predicted = model2.sm.predict(model2.test_x)
-auc = roc_auc_score(y_true=model2.test_y, y_score=model2.yhat)
-
-
 plot_proba(model2)
 plot_regular_vs_post_season(model2)
 plot_confusion_matrix(model2)
-# g.tight_layout()
 
-
-# Major ticks every 20, minor ticks every 5
-# major_ticks = np.arange(0, 101, 20)
-# minor_ticks = np.arange(0, 101, 5)
-
-g.set_xticks(major_ticks)
-g.set_xticks(minor_ticks, minor=True)
-g.set_yticks(major_ticks)
-g.set_yticks(minor_ticks, minor=True)
-# And a corresponding grid
-g.grid(which='both')
-# Or if you want different settings for the grids:
-g.grid(which='minor', alpha=0.2)
-g.grid(which='major', alpha=0.5)
-
-pairplot(x = d2)
-
-
-#! Boxplots
-
-cNoFocus = '#222123'
-g = sns.boxplot(
-        x='shot_made_flag',
-        y='shot_distance',
-        data=d2,
-        showmeans=True,
-        )
-# g.legend()
-g.set_title('Shot Distance Spread', color = cNoFocus)
-g.set_xlabel('Shot Made/Missed', size = 'large', color = cNoFocus)
-g.set_ylabel('Shot Distance (ft)', size = 'large', color = cNoFocus)
-g.set_xticks(['Missed', 'Made'])
-g.tick_params( colors=cNoFocus)
-g.spines['bottom'].set_color(cNoFocus)
-g.spines['top'].set_color(cNoFocus)
-g.spines['left'].set_color(cNoFocus)
-g.spines['right'].set_color(cNoFocus)
-g.xaxis.label.set_color(cNoFocus)
-g.yaxis.label.set_color(cNoFocus)
-
-
-g = sns.countplot(
-        x='season_count',
-        # y='shot_made_flag',
-        data=d2,
-        # showmeans=True,
-        )
-g.set_title('Shot Distance Spread', color = cNoFocus)
-g.set_xlabel('Shot Made/Missed', size = 'large', color = cNoFocus)
-g.set_ylabel('Shot Distance (ft)', size = 'large', color = cNoFocus)
-g.set_xticks(['Missed', 'Made'])
-g.tick_params( colors=cNoFocus)
-g.spines['bottom'].set_color(cNoFocus)
-g.spines['top'].set_color(cNoFocus)
-g.spines['left'].set_color(cNoFocus)
-g.spines['right'].set_color(cNoFocus)
-# g.xaxis.label.set_color(cNoFocus)
-# g.yaxis.label.set_color(cNoFocus)
-
-
-#! TODO: Add plots with CIs
-#! TODO: Add ROC plot
-
-data = model.test_x.join(model.test_y).head(100)
-cols = data[['shot_distance', 'angle_from_basket', 'lat', 'lon']].columns.sort_values().tolist()
-ncols = len(cols)
-
-nchartrows = 3
-
-f, axarr = plt.subplots(int(np.ceil(ncols/2)), int(np.floor(ncols/2)), figsize=(15, 15))
-for idx, feature in enumerate(cols):
-        i = int(np.floor(idx/nchartrows))
-        j = idx%nchartrows
-        print('{} : {}'.format(i, j))
-        sns.boxplot(
-            y = feature,
-            x ='shot_made_flag',
-            data=data,
-            showmeans=True,
-            ax=axarr[i, j]
-            )
 
 """
 
 #* logOdds
 -------------------------------------------------------------------------------------------
-                              Coef.    Std.Err.      z    P>|z|      [0.025       0.975]
--------------------------------------------------------------------------------------------
+s                              Coef.    Std.Err.      z    P>|z|      [0.025       0.975]
 lat                          -0.6565       0.3081 -2.1307 0.0331       -1.2604      -0.0526
 lon                          -0.0526       0.1710 -0.3076 0.7584       -0.3879       0.2826
 playoffs                      0.0417       0.0462  0.9019 0.3671       -0.0489       0.1324
@@ -576,61 +451,3 @@ https://www.predictiveanalyticsworld.com/patimes/on-variable-importance-in-logis
 #! The model indicates a 4.25% increase in shooting ability during the playoffs, however, the result was not statistically significant.
 
 CI's overlap and contain zero. zome evidence but not enough to conclude there is a difference.
-
-
-"""
-
-
-# model = LogR(d1, DEPENDENT)
-# model.describe_features()
-# model.fit()
-# model.score()
-# model.predict(d1_pred)
-# model.log_loss()
-# model.confusion_matrix()
-# model.roc_plot()
-
-"""
-varsA
-
-shot_distance
-playoffs
-arena_temp
-game_event_id
-lat
-lon
-
-
-VarsB
-
-shot_distance
-playoffs
-arena_temp
-period
-attendance
-avgnoisedb
-minutes_remaining
-seconds_remaining
-
-
-Model2
-shot_distance
-playoffs
-arena_temp
-lat
-lon
-attendances
-avgnoisedb
-seconds_remaining
-seconds_left_in_period
-last_seconds_of_period
-seconds_left_in_game
-home_or_away
-num_shots_cumulative
-angle_from_basket
-season_count
-combined_shot_type
-opponent
-
-
-"""

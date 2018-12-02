@@ -1,14 +1,97 @@
 \chapter{Conclusion}\label{chap:conclusion}
 
+\par
+Finally, now that we've demonstrated the process of applying binary classification techniques to NBA shooting data, we can return to the original questions of interest.  Our findings show a $ -1.87 \% \pm  0.85 \%\,\,  (-2.72 \%, -1.01 \%) $ step change in Kobe Bryant's shot making ability, measured with a p-value of $< 0.001$ at $\alpha = 0.05$ (figure \ref{fig:plotproba}). That is to say, for every additional foot between Bryant and the basket, his accuracy is reduced by just under 2\%.  Another, perhaps more familiar way to put it is in terms of odds. Kobe's odds of making a basket are $$ 0.9813 \pm 0.0084   \,\, (0.9728 , 0.9899 )  $$ with respect to his distance from the basket.
 
 
-Answer these questions with our results:
 
-The odds of Kobe making a shot decrease with respect to the distance he is from the hoop.  If there is evidence of this, quantify this relationship.
-
-The probability of Kobe making a shot decreases linearly with respect to the distance he is from the hoop. If there is evidence of this, quantify this relationship.
-
-The relationship between the distance Kobe is from the basket and the odds of him making the shot is different if they are in the playoffs. Quantify your findings with statistical evidence one way or the other.
+\begin{figure}[!hb]
+    \center{\includegraphics[width=\textwidth]{../figs/plot_proba.png}}
+    \caption{\label{fig:plotproba} Predicted Shot Probability over Distance to Hoop}
+\end{figure}
 
 
-Include Post hoc analysis:
+Additionally, the model indicates a $ 4.25\% \pm 9.9\% \,\,(-4.77\%, 14.15\%) $increase in shooting ability} \\
+during the playoffs, however, the result was not statistically significant, with a \\
+p-value of 0.3671 at an \alpha of 0.05 on the \chi^2 distribution.  There is not sufficient evidence to reject the null hypothesis that Kobe's performance shows no notable difference between regular and post season. (table \ref{fig:post-season})
+
+\begin{figure}[!hb]
+    \center{\includegraphics[width=\textwidth]{../figs/plot_regular_vs_post_season.png}}
+    \caption{\label{fig:post-season} Performance in Regular and Post Season}
+\end{figure}
+
+
+Figure tables of Log-odds, odds, and percentage change in shooting ability with respect to distance:
+
+Log-Odds:
+\resizebox{\textwidth}{!}{\begin{tabular}{lrrrrrr}
+    \toprule
+    {} &  Coef. &  Std.Err. &  z &  P>|z| &  [0.025 &          0.975] \\
+    \midrule
+    lat                    &      0 &         0 & -2 &      0 &       0 &               0 \\
+    lon                    &      0 &         0 & -0 &      1 &       0 & 153130194710622 \\
+    playoffs               &     71 &         0 &  1 &      0 &       0 &         1400174 \\
+    seconds\_remaining      &      1 &         0 &  2 &      0 &       1 &               1 \\
+    shot\_distance          &      0 &         0 & -4 &      0 &       0 &               0 \\
+    attendance             &      1 &         0 & 10 &      0 &       1 &               1 \\
+    arena\_temp             &     28 &         0 &  4 &      0 &       6 &             133 \\
+    avgnoisedb             &      1 &         0 &  0 &      1 &       0 &               6 \\
+    seconds\_left\_in\_period &      1 &         0 &  1 &      0 &       1 &               1 \\
+    last\_seconds\_of\_period &      0 &         0 & -7 &      0 &       0 &               0 \\
+    seconds\_left\_in\_game   &      1 &         0 &  2 &      0 &       1 &               1 \\
+    home\_or\_away           &      0 &         0 & -1 &      0 &       0 &              32 \\
+    num\_shots\_cumulative   &      1 &         0 &  0 &      1 &       0 &               2 \\
+    angle\_from\_basket      &      1 &         0 &  0 &      1 &       1 &               1 \\
+    season\_count           &      3 &         0 &  3 &      0 &       1 &               5 \\
+    \bottomrule
+    \end{tabular}
+    }\captionof{table}{Log-odds with Respect to Distance}\label{tbl:logodds}
+
+Odds:
+\resizebox{\textwidth}{!}{\begin{tabular}{lrrrrrr}
+    \toprule
+    {} &  Coef. &  Std.Err. &  z &  P>|z| &  [0.025 &          0.975] \\
+    \midrule
+    lat                    &      0 &         0 & -2 &      0 &       0 &               0 \\
+    lon                    &      0 &         0 & -0 &      1 &       0 & 153130194710622 \\
+    playoffs               &     71 &         0 &  1 &      0 &       0 &         1400174 \\
+    seconds\_remaining      &      1 &         0 &  2 &      0 &       1 &               1 \\
+    shot\_distance          &      0 &         0 & -4 &      0 &       0 &               0 \\
+    attendance             &      1 &         0 & 10 &      0 &       1 &               1 \\
+    arena\_temp             &     28 &         0 &  4 &      0 &       6 &             133 \\
+    avgnoisedb             &      1 &         0 &  0 &      1 &       0 &               6 \\
+    seconds\_left\_in\_period &      1 &         0 &  1 &      0 &       1 &               1 \\
+    last\_seconds\_of\_period &      0 &         0 & -7 &      0 &       0 &               0 \\
+    seconds\_left\_in\_game   &      1 &         0 &  2 &      0 &       1 &               1 \\
+    home\_or\_away           &      0 &         0 & -1 &      0 &       0 &              32 \\
+    num\_shots\_cumulative   &      1 &         0 &  0 &      1 &       0 &               2 \\
+    angle\_from\_basket      &      1 &         0 &  0 &      1 &       1 &               1 \\
+    season\_count           &      3 &         0 &  3 &      0 &       1 &               5 \\
+    \bottomrule
+    \end{tabular}
+    }\captionof{table}{Odds with Respect to Distance}\label{tbl:odds}
+
+Percent Change:
+
+\resizebox{\textwidth}{!}{\begin{tabular}{lrrr}
+    \toprule
+    {} &  Coef. &  [0.025 &            0.975] \\
+    \midrule
+    lat                    &   -100 &    -100 &               -99 \\
+    lon                    &    -99 &    -100 & 15313019471062054 \\
+    playoffs               &   6978 &     -99 &         140017285 \\
+    seconds\_remaining      &     15 &      -3 &                37 \\
+    shot\_distance          &    -85 &     -93 &               -64 \\
+    attendance             &      2 &       1 &                 2 \\
+    arena\_temp             &   2699 &     505 &             13151 \\
+    avgnoisedb             &     28 &     -72 &               499 \\
+    seconds\_left\_in\_period &      1 &      -1 &                 2 \\
+    last\_seconds\_of\_period &   -100 &    -100 &              -100 \\
+    seconds\_left\_in\_game   &      1 &       0 &                 1 \\
+    home\_or\_away           &    -92 &    -100 &              3078 \\
+    num\_shots\_cumulative   &      5 &     -53 &               140 \\
+    angle\_from\_basket      &      2 &      -6 &                10 \\
+    season\_count           &    154 &      31 &               394 \\
+    \bottomrule
+    \end{tabular}
+    }\captionof{table}{Percent Change over Distance}\label{tbl:pct_change}

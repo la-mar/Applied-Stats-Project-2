@@ -1,0 +1,1866 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+  \PYG{c+c1}{\PYGZsh{} MSDS 6371 \PYGZhy{} Applied Statistics  \PYGZsh{}}
+  \PYG{c+c1}{\PYGZsh{} Allen Crane and Brock Friedrich \PYGZsh{}}
+  \PYG{c+c1}{\PYGZsh{} Kobe Bryant Shot Selection      \PYGZsh{}}
+  \PYG{c+c1}{\PYGZsh{} November 2018                   \PYGZsh{}}
+
+
+\PYG{k+kn}{port} \PYG{n+nn}{warnings}
+\PYG{n}{rnings}\PYG{o}{.}\PYG{n}{filterwarnings}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}ignore\PYGZdq{}}\PYG{p}{)}
+
+\PYG{k+kn}{port} \PYG{n+nn}{os}
+\PYG{k+kn}{port} \PYG{n+nn}{sys}
+\PYG{k+kn}{port} \PYG{n+nn}{seaborn} \PYG{k+kn}{as} \PYG{n+nn}{sns}
+\PYG{k+kn}{port} \PYG{n+nn}{matplotlib.pyplot} \PYG{k+kn}{as} \PYG{n+nn}{plt}
+\PYG{k+kn}{port} \PYG{n+nn}{pandas} \PYG{k+kn}{as} \PYG{n+nn}{pd}
+\PYG{k+kn}{port} \PYG{n+nn}{numpy} \PYG{k+kn}{as} \PYG{n+nn}{np}
+\PYG{k+kn}{port} \PYG{n+nn}{statsmodels.api} \PYG{k+kn}{as} \PYG{n+nn}{sm}
+\PYG{k+kn}{om} \PYG{n+nn}{statsmodels.stats.outliers\PYGZus{}influence} \PYG{k+kn}{import} \PYG{n}{variance\PYGZus{}inflation\PYGZus{}factor}
+\PYG{k+kn}{om} \PYG{n+nn}{sklearn.feature\PYGZus{}selection} \PYG{k+kn}{import} \PYG{n}{RFE}
+\PYG{k+kn}{om} \PYG{n+nn}{sklearn.discriminant\PYGZus{}analysis} \PYG{k+kn}{import} \PYG{n}{LinearDiscriminantAnalysis}
+\PYG{k+kn}{om} \PYG{n+nn}{sklearn.model\PYGZus{}selection} \PYG{k+kn}{import} \PYG{n}{train\PYGZus{}test\PYGZus{}split}
+\PYG{k+kn}{om} \PYG{n+nn}{sklearn.metrics} \PYG{k+kn}{import} \PYG{n}{confusion\PYGZus{}matrix}\PYG{p}{,} \PYG{n}{log\PYGZus{}loss}\PYG{p}{,} \PYG{n}{roc\PYGZus{}auc\PYGZus{}score}
+\PYG{k+kn}{om} \PYG{n+nn}{sklearn.linear\PYGZus{}model} \PYG{k+kn}{import} \PYG{n}{LogisticRegression}
+
+\PYG{k+kn}{port} \PYG{n+nn}{statsmodels.formula.api} \PYG{k+kn}{as} \PYG{n+nn}{smf}
+\PYG{k+kn}{om} \PYG{n+nn}{scipy} \PYG{k+kn}{import} \PYG{n}{stats}
+\PYG{k+kn}{port} \PYG{n+nn}{matplotlib.pyplot} \PYG{k+kn}{as} \PYG{n+nn}{plt}
+\PYG{k+kn}{port} \PYG{n+nn}{numpy} \PYG{k+kn}{as} \PYG{n+nn}{np}
+\PYG{k+kn}{port} \PYG{n+nn}{pandas} \PYG{k+kn}{as} \PYG{n+nn}{pd}
+\PYG{k+kn}{om} \PYG{n+nn}{pandas.plotting} \PYG{k+kn}{import} \PYG{p}{(}\PYG{n}{lag\PYGZus{}plot}\PYG{p}{,}
+					\PYG{n}{autocorrelation\PYGZus{}plot}\PYG{p}{,}
+					\PYG{n}{table}\PYG{p}{,} \PYG{n}{scatter\PYGZus{}matrix}\PYG{p}{,}
+					\PYG{n}{boxplot}\PYG{p}{)}
+
+\PYG{k+kn}{om} \PYG{n+nn}{patsy} \PYG{k+kn}{import} \PYG{n}{dmatrices}
+\PYG{k+kn}{om} \PYG{n+nn}{math} \PYG{k+kn}{import} \PYG{n}{degrees}\PYG{p}{,} \PYG{n}{acos}
+\PYG{k+kn}{om} \PYG{n+nn}{scipy.spatial} \PYG{k+kn}{import} \PYG{n}{distance}
+
+
+\PYG{c+c1}{os.chdir(os.path.dirname(\PYGZus{}\PYGZus{}file\PYGZus{}\PYGZus{}))}
+\PYG{n}{s}\PYG{o}{.}\PYG{n}{path}\PYG{o}{.}\PYG{n}{insert}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{os}\PYG{o}{.}\PYG{n}{getcwd}\PYG{p}{()}\PYG{o}{+}\PYG{l+s+s1}{\PYGZsq{}/src\PYGZsq{}}\PYG{p}{)}
+\PYG{k+kn}{om} \PYG{n+nn}{eda} \PYG{k+kn}{import} \PYG{o}{*}
+\PYG{k+kn}{om} \PYG{n+nn}{confusion\PYGZus{}matrix\PYGZus{}pretty} \PYG{k+kn}{import} \PYG{o}{*}
+\PYG{c+c1}{from plotting import *}
+\PYG{k+kn}{om} \PYG{n+nn}{logistic\PYGZus{}regression} \PYG{k+kn}{import} \PYG{o}{*}
+\PYG{k+kn}{om} \PYG{n+nn}{linear\PYGZus{}discriminant\PYGZus{}analysis} \PYG{k+kn}{import} \PYG{o}{*}
+
+\PYG{k}{f} \PYG{n+nf}{cols}\PYG{p}{(}\PYG{n}{df}\PYG{p}{:} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n+nb}{list}\PYG{p}{:}
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Extract list of columns from input DataFrame and removing the dependent variable.\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+  \PYG{k}{return} \PYG{p}{[}\PYG{n}{x} \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{df}\PYG{o}{.}\PYG{n}{columns}\PYG{o}{.}\PYG{n}{tolist}\PYG{p}{()} \PYG{k}{if} \PYG{n}{x} \PYG{o+ow}{not} \PYG{o+ow}{in} \PYG{p}{[}\PYG{n}{DEPENDENT}\PYG{p}{]]}
+
+\PYG{k}{f} \PYG{n+nf}{get\PYGZus{}dummies}\PYG{p}{(}\PYG{n}{df}\PYG{p}{:} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{,} \PYG{n}{drop\PYGZus{}first} \PYG{o}{=} \PYG{n+nb+bp}{False}\PYG{p}{):}
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Replace catagorical varables with indicators\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+  \PYG{n}{df} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{get\PYGZus{}dummies}\PYG{p}{(}\PYG{n}{df}\PYG{p}{,} \PYG{n}{dtype} \PYG{o}{=} \PYG{n+nb}{float}\PYG{p}{)}
+  \PYG{n}{df}\PYG{o}{.}\PYG{n}{columns} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{columns} \PYGZbs{}
+                  \PYG{o}{.}\PYG{n}{str}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()} \PYGZbs{}
+                  \PYG{o}{.}\PYG{n}{str}\PYG{o}{.}\PYG{n}{replace}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{} \PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}\PYGZus{}\PYGZdq{}}\PYG{p}{)}
+  \PYG{k}{return} \PYG{n}{df}
+
+\PYG{k}{f} \PYG{n+nf}{LogRegModel}\PYG{p}{(}\PYG{n}{data}\PYG{p}{:} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{,} \PYG{n}{add\PYGZus{}constant} \PYG{o}{=} \PYG{n+nb+bp}{False}\PYG{p}{):}
+  \PYG{k}{if} \PYG{n}{add\PYGZus{}constant}\PYG{p}{:}
+      \PYG{n}{data} \PYG{o}{=} \PYG{n}{sm}\PYG{o}{.}\PYG{n}{add\PYGZus{}constant}\PYG{p}{(}\PYG{n}{data}\PYG{p}{)}
+  \PYG{n}{model} \PYG{o}{=} \PYG{n}{LogR}\PYG{p}{(}\PYG{n}{data}\PYG{p}{,} \PYG{n}{DEPENDENT}\PYG{p}{)}
+  \PYG{n}{model}\PYG{o}{.}\PYG{n}{sm} \PYG{o}{=} \PYG{n}{model}\PYG{o}{.}\PYG{n}{statsmodel}\PYG{p}{()}
+
+  \PYG{n}{model}\PYG{o}{.}\PYG{n}{yhat} \PYG{o}{=} \PYG{n}{model}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{predict}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{test\PYGZus{}x}\PYG{p}{)}
+  \PYG{k}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{ Predicted Log Loss: \PYGZob{}\PYGZcb{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}\PYG{o}{.}\PYG{n}{format}\PYG{p}{(}
+      \PYG{n+nb}{round}\PYG{p}{(}
+          \PYG{n}{log\PYGZus{}loss}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{test\PYGZus{}y}\PYG{p}{,} \PYG{n}{model}\PYG{o}{.}\PYG{n}{yhat}\PYG{p}{)}
+          \PYG{p}{,} \PYG{l+m+mi}{4}\PYG{p}{)))}
+  \PYG{k}{return} \PYG{n}{model}
+
+\PYG{k}{f} \PYG{n+nf}{summarize\PYGZus{}model}\PYG{p}{(}\PYG{n}{model}\PYG{p}{:} \PYG{n}{LogR}\PYG{p}{):}
+  \PYG{k}{print}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{describe\PYGZus{}features}\PYG{p}{())}
+  \PYG{k}{print}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{summary}\PYG{p}{())}
+  \PYG{k}{print}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{summary2}\PYG{p}{())}
+  \PYG{k}{print}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{wald\PYGZus{}test\PYGZus{}terms}\PYG{p}{())}
+
+\PYG{c+c1}{Import Data}
+\PYG{n}{TA} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{read\PYGZus{}excel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}data/project2Data.xlsx\PYGZsq{}}\PYG{p}{,} \PYG{n}{index\PYGZus{}col} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}recId\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{R\PYGZus{}PREDICTION} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{read\PYGZus{}excel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}data/project2Pred.xlsx\PYGZsq{}}\PYG{p}{,} \PYG{n}{index\PYGZus{}col} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}rannum\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{PENDENT} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}shot\PYGZus{}made\PYGZus{}flag\PYGZdq{}}
+
+\PYG{n}{DUNDANT\PYGZus{}FEATURES} \PYG{o}{=} \PYG{p}{[}
+\PYG{l+s+s1}{\PYGZsq{}team\PYGZus{}id\PYGZsq{}}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} constant term}
+\PYG{l+s+s1}{\PYGZsq{}team\PYGZus{}name\PYGZsq{}}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} constant term}
+\PYG{l+s+s1}{\PYGZsq{}season\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}game\PYGZus{}id\PYGZsq{}}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} violates independence}
+\PYG{l+s+s1}{\PYGZsq{}matchup\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}id\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}recId\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}zone\PYGZus{}area\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}zone\PYGZus{}basic\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}zone\PYGZus{}range\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}minutes\PYGZus{}remaining\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}seconds\PYGZus{}elapsed\PYGZus{}in\PYGZus{}game\PYGZsq{}}\PYG{p}{,}
+\PYG{l+s+s1}{\PYGZsq{}game\PYGZus{}event\PYGZus{}id\PYGZsq{}}\PYG{p}{,}  \PYG{c+c1}{\PYGZsh{} violates independence}
+\PYG{l+s+s1}{\PYGZsq{}game\PYGZus{}date\PYGZsq{}}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} violates independence}
+\PYG{l+s+s1}{\PYGZsq{}action\PYGZus{}type\PYGZsq{}}\PYG{p}{,}
+      \PYG{l+s+s1}{\PYGZsq{}loc\PYGZus{}x\PYGZsq{}}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} collinear with lat}
+      \PYG{l+s+s1}{\PYGZsq{}loc\PYGZus{}y\PYGZsq{}}\PYG{p}{,} \PYG{c+c1}{\PYGZsh{} collinear with lon}
+
+
+
+
+
+
+\PYG{k}{f} \PYG{n+nf}{to\PYGZus{}latex}\PYG{p}{(}\PYG{n}{df}\PYG{p}{):}
+  \PYG{n}{pd}\PYG{o}{.}\PYG{n}{set\PYGZus{}option}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}display.float\PYGZus{}format\PYGZsq{}}\PYG{p}{,} \PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+si}{\PYGZpc{}.0f}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}} \PYG{n}{x}\PYG{p}{)}
+  \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}temp.txt\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}w\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{f}\PYG{p}{:}
+      \PYG{n}{f}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{l+s+sa}{r}\PYG{l+s+s1}{\PYGZsq{}\PYGZbs{}resizebox\PYGZob{}\PYGZbs{}textwidth\PYGZcb{}\PYGZob{}!\PYGZcb{}\PYGZob{}\PYGZsq{}}\PYG{o}{+}
+          \PYG{n}{df}\PYG{o}{.}\PYG{n}{to\PYGZus{}latex}\PYG{p}{()}
+          \PYG{o}{+} \PYG{l+s+sa}{r}\PYG{l+s+s1}{\PYGZsq{}\PYGZcb{}\PYGZbs{}captionof\PYGZob{}table\PYGZcb{}\PYGZob{}Feature Summary\PYGZcb{}\PYGZbs{}label\PYGZob{}tbl:featuresummary\PYGZcb{}\PYGZsq{}}\PYG{p}{)}
+  \PYG{n}{pd}\PYG{o}{.}\PYG{n}{set\PYGZus{}option}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}display.float\PYGZus{}format\PYGZsq{}}\PYG{p}{,} \PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+si}{\PYGZpc{}.4f}\PYG{l+s+s1}{\PYGZsq{}} \PYG{o}{\PYGZpc{}} \PYG{n}{x}\PYG{p}{)}
+
+
+\PYG{k}{f} \PYG{n+nf}{desc}\PYG{p}{(}\PYG{n}{df}\PYG{p}{:} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{):}
+\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}Produces a summary of the input DataFrame}
+
+\PYG{l+s+sd}{rguments:}
+\PYG{l+s+sd}{df \PYGZob{}pd.DataFrame\PYGZcb{} \PYGZhy{}\PYGZhy{} [description]}
+
+\PYG{l+s+sd}{eturns:}
+\PYG{l+s+sd}{pd.DataFrame \PYGZhy{}\PYGZhy{} DataFrame of summary statistics}
+\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}}
+
+\PYG{n}{esc} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{describe}\PYG{p}{(}\PYG{n}{percentiles} \PYG{o}{=} \PYG{n+nb+bp}{None}\PYG{p}{)}\PYG{o}{.}\PYG{n}{T}
+\PYG{n}{esc}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}missing\PYGZsq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{df}\PYG{o}{.}\PYG{n}{index}\PYG{p}{)} \PYG{o}{\PYGZhy{}} \PYG{n}{desc}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}count\PYGZsq{}}\PYG{p}{]}
+\PYG{c+c1}{ desc = desc.astype(\PYGZsq{}int\PYGZsq{})}
+\PYG{n}{esc}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}median\PYGZsq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{median}\PYG{p}{()}
+\PYG{n}{esc}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}missing \PYGZpc{}\PYGZsq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{desc}\PYG{o}{.}\PYG{n}{missing} \PYG{o}{/} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{df}\PYG{o}{.}\PYG{n}{index}\PYG{p}{)} \PYG{o}{*} \PYG{l+m+mi}{100}
+\PYG{k}{eturn} \PYG{n}{desc}\PYG{o}{.}\PYG{n}{T}
+
+\PYG{l+s+sd}{\PYGZdq{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{} Model 0 \PYGZhy{} Predicted Log Loss: 0.6552 \PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+
+\PYG{l+s+sd}{\PYGZdq{}Dataset: d0 | Prediction set: d0\PYGZus{}pred}
+\PYG{l+s+sd}{  \PYGZhy{} Full Model}
+\PYG{l+s+sd}{\PYGZdq{}}
+
+ \PYG{o}{=} \PYG{n}{prepare\PYGZus{}data}\PYG{p}{(}\PYG{n}{DATA}\PYG{o}{.}\PYG{n}{drop}\PYG{p}{(}\PYG{n}{columns} \PYG{o}{=} \PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}action\PYGZus{}type\PYGZsq{}}\PYG{p}{]))}
+\PYG{o}{.}\PYG{n}{game\PYGZus{}date} \PYG{o}{=} \PYG{n}{d0}\PYG{o}{.}\PYG{n}{game\PYGZus{}date}\PYG{o}{.}\PYG{n}{apply}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{x}\PYG{o}{.}\PYG{n}{toordinal}\PYG{p}{())}
+ \PYG{o}{=} \PYG{n}{get\PYGZus{}dummies}\PYG{p}{(}\PYG{n}{d0}\PYG{p}{)}\PYG{o}{.}\PYG{n}{fillna}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} Get dummy variables for categoricals}
+\PYG{n}{\PYGZus{}pred} \PYG{o}{=} \PYG{n}{wrangle\PYGZus{}features}\PYG{p}{(}\PYG{n}{FOR\PYGZus{}PREDICTION}\PYG{p}{)}
+\PYG{n}{\PYGZus{}pred}\PYG{o}{.}\PYG{n}{game\PYGZus{}date} \PYG{o}{=} \PYG{n}{d0\PYGZus{}pred}\PYG{o}{.}\PYG{n}{game\PYGZus{}date}\PYG{o}{.}\PYG{n}{apply}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{x}\PYG{o}{.}\PYG{n}{toordinal}\PYG{p}{())}
+\PYG{n}{\PYGZus{}pred} \PYG{o}{=} \PYG{n}{get\PYGZus{}dummies}\PYG{p}{(}\PYG{n}{d0\PYGZus{}pred}\PYG{p}{)}\PYG{o}{.}\PYG{n}{fillna}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} Get dummy variables for categoricals}
+\PYG{n}{\PYGZus{}pred} \PYG{o}{=} \PYG{n}{d0\PYGZus{}pred}\PYG{p}{[}\PYG{n}{cols}\PYG{p}{(}\PYG{n}{d0}\PYG{p}{)]}
+
+\PYG{l+s+sd}{\PYGZdq{}Fit d2\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{n}{del0} \PYG{o}{=} \PYG{n}{LogRegModel}\PYG{p}{(}\PYG{n}{d0}\PYG{p}{)}
+\PYG{n}{mmarize\PYGZus{}model}\PYG{p}{(}\PYG{n}{model0}\PYG{p}{)}
+\PYG{n}{del0}\PYG{o}{.}\PYG{n}{roc\PYGZus{}plot}\PYG{p}{()}
+
+\PYG{l+s+sd}{\PYGZdq{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{} Model 1 \PYGZhy{} Predicted Log Loss: 0.6652 \PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+
+\PYG{l+s+sd}{\PYGZdq{}Dataset: d1 | Prediction set: d1\PYGZus{}pred}
+\PYG{l+s+sd}{  \PYGZhy{} No categorical features}
+\PYG{l+s+sd}{\PYGZdq{}}
+ \PYG{o}{=} \PYG{n}{prepare\PYGZus{}data}\PYG{p}{(}\PYG{n}{DATA}\PYG{p}{,} \PYG{n}{drop\PYGZus{}categorical} \PYG{o}{=} \PYG{n+nb+bp}{True}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} Wrangle Data}
+\PYG{o}{.}\PYG{n}{game\PYGZus{}date} \PYG{o}{=} \PYG{n}{d1}\PYG{o}{.}\PYG{n}{game\PYGZus{}date}\PYG{o}{.}\PYG{n}{apply}\PYG{p}{(}\PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{x}\PYG{o}{.}\PYG{n}{toordinal}\PYG{p}{())}
+ \PYG{o}{=} \PYG{n}{d1}\PYG{o}{.}\PYG{n}{fillna}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}
+\PYG{c+c1}{d1\PYGZus{}pred = wrangle\PYGZus{}features(FOR\PYGZus{}PREDICTION)}
+\PYG{c+c1}{d1\PYGZus{}pred.game\PYGZus{}date = d1\PYGZus{}pred.game\PYGZus{}date.apply(lambda x: x.toordinal())}
+\PYG{c+c1}{d1\PYGZus{}pred = d1\PYGZus{}pred[cols(d1)].fillna(0)}
+
+\PYG{l+s+sd}{\PYGZdq{}Fit d1\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{n}{del1} \PYG{o}{=} \PYG{n}{LogRegModel}\PYG{p}{(}\PYG{n}{d1}\PYG{p}{)}
+\PYG{n}{mmarize\PYGZus{}model}\PYG{p}{(}\PYG{n}{model1}\PYG{p}{)}
+\PYG{n}{del1}\PYG{o}{.}\PYG{n}{roc\PYGZus{}plot}\PYG{p}{()}
+
+\PYG{l+s+sd}{\PYGZdq{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{} Model 2 \PYGZhy{} Predicted Log Loss: 0.6479 \PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{\PYGZdq{}Dataset: d2 | Prediction set: d2\PYGZus{}pred}
+\PYG{l+s+sd}{  \PYGZhy{} Categorical features as indicators}
+\PYG{l+s+sd}{  \PYGZhy{} Drop redundant features}
+\PYG{l+s+sd}{\PYGZdq{}}
+
+ \PYG{o}{=} \PYG{n}{prepare\PYGZus{}data}\PYG{p}{(}\PYG{n}{DATA}\PYG{p}{,} \PYG{n}{drop\PYGZus{}columns}\PYG{o}{=} \PYG{n}{REDUNDANT\PYGZus{}FEATURES}\PYG{p}{)}
+\PYG{c+c1}{d2.game\PYGZus{}date = d2.game\PYGZus{}date.apply(lambda x: x.toordinal())}
+\PYG{c+c1}{d2.last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period = d2.last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period.astype(int)}
+ \PYG{o}{=} \PYG{n}{get\PYGZus{}dummies}\PYG{p}{(}\PYG{n}{d2}\PYG{p}{)}\PYG{o}{.}\PYG{n}{fillna}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} Get dummy variables for categoricals}
+\PYG{n}{\PYGZus{}pred} \PYG{o}{=} \PYG{n}{wrangle\PYGZus{}features}\PYG{p}{(}\PYG{n}{FOR\PYGZus{}PREDICTION}\PYG{p}{)}
+\PYG{n}{\PYGZus{}pred} \PYG{o}{=} \PYG{n}{get\PYGZus{}dummies}\PYG{p}{(}\PYG{n}{d2\PYGZus{}pred}\PYG{p}{)}\PYG{o}{.}\PYG{n}{fillna}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} Get dummy variables for categoricals}
+\PYG{n}{\PYGZus{}pred} \PYG{o}{=} \PYG{n}{d2\PYGZus{}pred}\PYG{p}{[}\PYG{n}{cols}\PYG{p}{(}\PYG{n}{d2}\PYG{p}{)]}
+
+\PYG{l+s+sd}{\PYGZdq{}Fit d2\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{n}{del2} \PYG{o}{=} \PYG{n}{LogRegModel}\PYG{p}{(}\PYG{n}{d2}\PYG{p}{)}
+\PYG{n}{mmarize\PYGZus{}model}\PYG{p}{(}\PYG{n}{model2}\PYG{p}{)}
+\PYG{n}{del2}\PYG{o}{.}\PYG{n}{sm2} \PYG{o}{=} \PYG{n}{model2}\PYG{o}{.}\PYG{n}{statsmodel\PYGZus{}}\PYG{p}{()}
+\PYG{n}{del2}\PYG{o}{.}\PYG{n}{sm2}\PYG{o}{.}\PYG{n}{fitted} \PYG{o}{=} \PYG{n}{model2}\PYG{o}{.}\PYG{n}{sm2}\PYG{o}{.}\PYG{n}{fit}\PYG{p}{()}
+\PYG{c+c1}{model2.sm.summary2()}
+\PYG{n}{del2}\PYG{o}{.}\PYG{n}{sm2}\PYG{o}{.}\PYG{n}{fitted}\PYG{o}{.}\PYG{n}{predict}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{test\PYGZus{}x}\PYG{p}{)}
+\PYG{c+c1}{pd.Series(model2.predict\PYGZus{}labels(d2\PYGZus{}pred)).set\PYGZus{}index(d2\PYGZus{}pred.sho)}
+\PYG{c+c1}{model2.roc\PYGZus{}plot()}
+
+\PYG{n}{f\PYGZus{}train\PYGZus{}x} \PYG{o}{=} \PYG{n}{model2}\PYG{o}{.}\PYG{n}{sm2}\PYG{o}{.}\PYG{n}{pdf}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{train\PYGZus{}x}\PYG{p}{)}
+\PYG{n}{f\PYGZus{}train\PYGZus{}x} \PYG{o}{=} \PYG{n}{model2}\PYG{o}{.}\PYG{n}{sm2}\PYG{o}{.}\PYG{n}{cdf}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{train\PYGZus{}x}\PYG{p}{)}
+
+\PYG{n}{sult} \PYG{o}{=} \PYG{n}{model2}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{summary2}\PYG{p}{()}
+\PYG{n}{godds} \PYG{o}{=} \PYG{n}{result}\PYG{o}{.}\PYG{n}{tables}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}
+\PYG{n}{ds}\PYG{p}{[[}\PYG{l+s+s1}{\PYGZsq{}Coef.\PYGZsq{}}\PYG{p}{,}\PYG{l+s+s1}{\PYGZsq{}[0.025\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}0.975]\PYGZsq{}}\PYG{p}{]]} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{exp}\PYG{p}{(}\PYG{n}{logodds}\PYG{p}{[[}\PYG{l+s+s1}{\PYGZsq{}Coef.\PYGZsq{}}\PYG{p}{,}\PYG{l+s+s1}{\PYGZsq{}[0.025\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}0.975]\PYGZsq{}}\PYG{p}{]])}
+\PYG{n}{t\PYGZus{}change} \PYG{o}{=} \PYG{p}{(}\PYG{n}{odds}\PYG{p}{[[}\PYG{l+s+s1}{\PYGZsq{}Coef.\PYGZsq{}}\PYG{p}{,}\PYG{l+s+s1}{\PYGZsq{}[0.025\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}0.975]\PYGZsq{}}\PYG{p}{]]} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)} \PYG{o}{*} \PYG{l+m+mi}{100}
+
+
+\PYG{n}{rr\PYGZus{}matrix}\PYG{p}{(}\PYG{n}{wrangle\PYGZus{}features}\PYG{p}{(}\PYG{n}{DATA}\PYG{o}{.}\PYG{n}{drop}\PYG{p}{(}\PYG{n}{columns} \PYG{o}{=} \PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}action\PYGZus{}type\PYGZsq{}}\PYG{p}{])))}
+\PYG{n}{ot\PYGZus{}proba}\PYG{p}{(}\PYG{n}{model2}\PYG{p}{)}
+\PYG{n}{ot\PYGZus{}regular\PYGZus{}vs\PYGZus{}post\PYGZus{}season}\PYG{p}{(}\PYG{n}{model2}\PYG{p}{)}
+\PYG{n}{ot\PYGZus{}confusion\PYGZus{}matrix}\PYG{p}{(}\PYG{n}{model2}\PYG{p}{)}
+
+
+\PYG{l+s+sd}{\PYGZdq{}}
+
+\PYG{l+s+sd}{ logOdds}
+\PYG{l+s+sd}{\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{l+s+sd}{                             Coef.    Std.Err.      z    P\PYGZgt{}|z|      [0.025       0.975]}
+\PYG{l+s+sd}{t                          \PYGZhy{}0.6565       0.3081 \PYGZhy{}2.1307 0.0331       \PYGZhy{}1.2604      \PYGZhy{}0.0526}
+\PYG{l+s+sd}{n                          \PYGZhy{}0.0526       0.1710 \PYGZhy{}0.3076 0.7584       \PYGZhy{}0.3879       0.2826}
+\PYG{l+s+sd}{ayoffs                      0.0417       0.0462  0.9019 0.3671       \PYGZhy{}0.0489       0.1324}
+\PYG{l+s+sd}{conds\PYGZus{}remaining             0.0014       0.0009  1.5626 0.1182       \PYGZhy{}0.0004       0.0031}
+\PYG{l+s+sd}{ot\PYGZus{}distance                \PYGZhy{}0.0189       0.0044 \PYGZhy{}4.2505 0.0000       \PYGZhy{}0.0275      \PYGZhy{}0.0102}
+\PYG{l+s+sd}{tendance                    0.0002       0.0000 10.3586 0.0000        0.0001       0.0002}
+\PYG{l+s+sd}{ena\PYGZus{}temp                    0.0328       0.0076  4.3008 0.0000        0.0178       0.0477}
+\PYG{l+s+sd}{gnoisedb                    0.0025       0.0078  0.3175 0.7509       \PYGZhy{}0.0128       0.0177}
+\PYG{l+s+sd}{conds\PYGZus{}left\PYGZus{}in\PYGZus{}period        0.0001       0.0001  0.7850 0.4325       \PYGZhy{}0.0001       0.0002}
+\PYG{l+s+sd}{st\PYGZus{}seconds\PYGZus{}of\PYGZus{}period       \PYGZhy{}0.8629       0.1282 \PYGZhy{}6.7335 0.0000       \PYGZhy{}1.1141      \PYGZhy{}0.6117}
+\PYG{l+s+sd}{conds\PYGZus{}left\PYGZus{}in\PYGZus{}game          0.0001       0.0000  2.2041 0.0275        0.0000       0.0001}
+\PYG{l+s+sd}{me\PYGZus{}or\PYGZus{}away                 \PYGZhy{}0.0259       0.0305 \PYGZhy{}0.8465 0.3973       \PYGZhy{}0.0857       0.0340}
+\PYG{l+s+sd}{m\PYGZus{}shots\PYGZus{}cumulative          0.0005       0.0042  0.1257 0.9000       \PYGZhy{}0.0077       0.0087}
+\PYG{l+s+sd}{gle\PYGZus{}from\PYGZus{}basket             0.0002       0.0004  0.3873 0.6985       \PYGZhy{}0.0006       0.0009}
+\PYG{l+s+sd}{ason\PYGZus{}count                  0.0093       0.0034  2.7567 0.0058        0.0027       0.0159}
+
+\PYG{l+s+sd}{ Odds}
+
+\PYG{l+s+sd}{                            Coef.     Std.Err.       z  P\PYGZgt{}|z|  [0.025  0.975]}
+
+\PYG{l+s+sd}{lat                          0.5175       0.3082 \PYGZhy{}2.1377 0.0325  0.2829  0.9467}
+\PYG{l+s+sd}{n                          0.9476       0.1711 \PYGZhy{}0.3144 0.7532  0.6777  1.3251}
+\PYG{l+s+sd}{ayoffs                     1.0214       0.0586  0.3602 0.7187  0.9105  1.1458}
+\PYG{l+s+sd}{conds\PYGZus{}remaining            1.0014       0.0009  1.5652 0.1175  0.9996  1.0031}
+\PYG{l+s+sd}{shot\PYGZus{}distance                0.9813       0.0044 \PYGZhy{}4.2570 0.0000  0.9728  0.9899}
+\PYG{l+s+sd}{me\PYGZus{}date                    1.0002       0.0003  0.5708 0.5681  0.9995  1.0008}
+\PYG{l+s+sd}{attendance                   1.0002       0.0000 10.3607 0.0000  1.0001  1.0002}
+\PYG{l+s+sd}{arena\PYGZus{}temp                   1.0331       0.0076  4.2622 0.0000  1.0177  1.0486}
+\PYG{l+s+sd}{gnoisedb                   1.0025       0.0078  0.3238 0.7461  0.9873  1.0180}
+\PYG{l+s+sd}{conds\PYGZus{}left\PYGZus{}in\PYGZus{}period       1.0001       0.0001  0.7873 0.4311  0.9999  1.0002}
+\PYG{l+s+sd}{last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period       0.4220       0.1282 \PYGZhy{}6.7317 0.0000  0.3283  0.5425}
+\PYG{l+s+sd}{seconds\PYGZus{}left\PYGZus{}in\PYGZus{}game         1.0001       0.0000  2.2072 0.0273  1.0000  1.0001}
+\PYG{l+s+sd}{me\PYGZus{}or\PYGZus{}away                 0.9739       0.0306 \PYGZhy{}0.8659 0.3865  0.9173  1.0340}
+\PYG{l+s+sd}{m\PYGZus{}shots\PYGZus{}cumulative         1.0005       0.0042  0.1242 0.9011  0.9923  1.0088}
+\PYG{l+s+sd}{gle\PYGZus{}from\PYGZus{}basket            1.0002       0.0004  0.3880 0.6980  0.9994  1.0009}
+\PYG{l+s+sd}{ason\PYGZus{}count                 0.9419       0.1212 \PYGZhy{}0.4942 0.6212  0.7427  1.1944}
+
+\PYG{l+s+sd}{ Percent Changes}
+\PYG{l+s+sd}{                                 Coef.     Std.Err.       z  P\PYGZgt{}|z|    [0.025   0.975]}
+\PYG{l+s+sd}{lat                             \PYGZhy{}48.1343       0.3081 \PYGZhy{}2.1307 0.0331  \PYGZhy{}71.6464  \PYGZhy{}5.1247}
+\PYG{l+s+sd}{n                              \PYGZhy{}5.1247       0.1710 \PYGZhy{}0.3076 0.7584  \PYGZhy{}32.1487  32.6623}
+\PYG{l+s+sd}{ayoffs                          4.2596       0.0462  0.9019 0.3671   \PYGZhy{}4.7756  14.1521}
+\PYG{l+s+sd}{conds\PYGZus{}remaining                 0.1395       0.0009  1.5626 0.1182   \PYGZhy{}0.0354   0.3147}
+\PYG{l+s+sd}{shot\PYGZus{}distance                    \PYGZhy{}1.8678       0.0044 \PYGZhy{}4.2505 0.0000   \PYGZhy{}2.7173  \PYGZhy{}1.0109}
+\PYG{l+s+sd}{attendance                        0.0173       0.0000 10.3586 0.0000    0.0141   0.0206}
+\PYG{l+s+sd}{arena\PYGZus{}temp                        3.3317       0.0076  4.3008 0.0000    1.7998   4.8866}
+\PYG{l+s+sd}{gnoisedb                        0.2476       0.0078  0.3175 0.7509   \PYGZhy{}1.2714   1.7900}
+\PYG{l+s+sd}{conds\PYGZus{}left\PYGZus{}in\PYGZus{}period            0.0061       0.0001  0.7850 0.4325   \PYGZhy{}0.0092   0.0215}
+\PYG{l+s+sd}{last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period          \PYGZhy{}57.8070       0.1282 \PYGZhy{}6.7335 0.0000  \PYGZhy{}67.1786 \PYGZhy{}45.7595}
+\PYG{l+s+sd}{seconds\PYGZus{}left\PYGZus{}in\PYGZus{}game              0.0070       0.0000  2.2041 0.0275    0.0008   0.0132}
+\PYG{l+s+sd}{me\PYGZus{}or\PYGZus{}away                     \PYGZhy{}2.5519       0.0305 \PYGZhy{}0.8465 0.3973   \PYGZhy{}8.2134   3.4588}
+\PYG{l+s+sd}{m\PYGZus{}shots\PYGZus{}cumulative              0.0527       0.0042  0.1257 0.9000   \PYGZhy{}0.7654   0.8775}
+\PYG{l+s+sd}{gle\PYGZus{}from\PYGZus{}basket                 0.0150       0.0004  0.3873 0.6985   \PYGZhy{}0.0610   0.0911}
+\PYG{l+s+sd}{ason\PYGZus{}count                      0.9308       0.0034  2.7567 0.0058    0.2681   1.5979}
+
+\PYG{l+s+sd}{ Significant features}
+\PYG{l+s+sd}{                      Coef.  Std.Err.       z  P\PYGZgt{}|z|  [0.025  0.975]}
+\PYG{l+s+sd}{t                    0.5175    0.3082 \PYGZhy{}2.1377 0.0325  0.2829  0.9467}
+\PYG{l+s+sd}{ot\PYGZus{}distance          0.9813    0.0044 \PYGZhy{}4.2570 0.0000  0.9728  0.9899}
+\PYG{l+s+sd}{tendance             1.0002    0.0000 10.3607 0.0000  1.0001  1.0002}
+\PYG{l+s+sd}{ena\PYGZus{}temp             1.0331    0.0076  4.2622 0.0000  1.0177  1.0486}
+\PYG{l+s+sd}{st\PYGZus{}seconds\PYGZus{}of\PYGZus{}period 0.4220    0.1282 \PYGZhy{}6.7317 0.0000  0.3283  0.5425}
+\PYG{l+s+sd}{conds\PYGZus{}left\PYGZus{}in\PYGZus{}game   1.0001    0.0000  2.2072 0.0273  1.0000  1.0001}
+
+\PYG{l+s+sd}{\PYGZdq{}}
+
+
+
+\PYG{l+s+sd}{\PYGZdq{} \PYGZsh{}! Interpretation}
+\PYG{l+s+sd}{e p value is calculated based on the assumption that the null hypothesis is true.}
+
+\PYG{l+s+sd}{think about it this way: “assuming the null hypothesis is true, the probability of the observed test statistic occurring is 0.02. That’s not very probable. But the observed test statistic definitely occurred, because it was observed. Therefore, it seems more likely that the null hypothesis is not true, i.e. It should be rejected.”}
+
+\PYG{l+s+sd}{suming the null hypothesis is true, the probability of measuring at least the observed test occurring is 0.02.”}
+
+\PYG{l+s+sd}{\PYGZdq{}}
+
+\PYG{n}{f\PYGZus{}test\PYGZus{}x} \PYG{o}{=} \PYG{n}{sm2}\PYG{o}{.}\PYG{n}{pdf}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{test\PYGZus{}x}\PYG{p}{)}
+
+\PYG{l+s+sd}{\PYGZdq{} Refine Model 2 \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{n}{ld} \PYG{o}{=} \PYG{n}{model2}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{wald\PYGZus{}test\PYGZus{}terms}\PYG{p}{()}
+\PYG{n}{ld}\PYG{o}{.}\PYG{n}{df} \PYG{o}{=} \PYG{n}{wald}\PYG{o}{.}\PYG{n}{summary\PYGZus{}frame}\PYG{p}{()}
+\PYG{n}{ld}\PYG{o}{.}\PYG{n}{significant} \PYG{o}{=} \PYG{n}{wald}\PYG{o}{.}\PYG{n}{df}\PYG{p}{[}\PYG{n}{wald}\PYG{o}{.}\PYG{n}{df}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}P\PYGZgt{}chi2\PYGZsq{}}\PYG{p}{]} \PYG{o}{\PYGZlt{}} \PYG{l+m+mf}{0.1}\PYG{p}{]}\PYG{o}{.}\PYG{n}{index}\PYG{o}{.}\PYG{n}{tolist}\PYG{p}{()}
+
+\PYG{l+s+sd}{\PYGZdq{} Refined Fit \PYGZhy{} Predicted Log Loss: 0.6634 \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{n}{del2r} \PYG{o}{=} \PYG{n}{LogRegModel}\PYG{p}{(}\PYG{n}{d2}\PYG{p}{[}\PYG{n}{wald}\PYG{o}{.}\PYG{n}{significant} \PYG{o}{+} \PYG{p}{[}\PYG{n}{DEPENDENT}\PYG{p}{]])}
+
+\PYG{l+s+sd}{\PYGZdq{}}
+\PYG{l+s+sd}{t                      \PYGZhy{}0.1393}
+\PYG{l+s+sd}{ot\PYGZus{}distance            \PYGZhy{}0.0447}
+\PYG{l+s+sd}{tendance                0.0002}
+\PYG{l+s+sd}{ena\PYGZus{}temp                0.0337}
+\PYG{l+s+sd}{conds\PYGZus{}left\PYGZus{}in\PYGZus{}game      0.0001}
+\PYG{l+s+sd}{st\PYGZus{}seconds\PYGZus{}of\PYGZus{}period   \PYGZhy{}0.8275}
+\PYG{l+s+sd}{\PYGZdq{}}
+
+
+
+
+\PYG{c+c1}{ Interpret: http://www\PYGZhy{}hsc.usc.edu/\PYGZti{}eckel/biostat2/notes/notes14.pdf}
+
+\PYG{l+s+sd}{\PYGZdq{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{} Model 3 \PYGZhy{} Predicted Log Loss: 0.669 \PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{\PYGZdq{}Dataset: d3 | Prediction set: d3\PYGZus{}pred}
+\PYG{l+s+sd}{  \PYGZhy{} Allen\PYGZsq{}s Model}
+\PYG{l+s+sd}{\PYGZdq{}}
+\PYG{n}{cols} \PYG{o}{=} \PYG{p}{[}
+  \PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}distance\PYGZsq{}}\PYG{p}{,}
+  \PYG{l+s+s1}{\PYGZsq{}playoffs\PYGZsq{}}\PYG{p}{,}
+  \PYG{l+s+s1}{\PYGZsq{}arena\PYGZus{}temp\PYGZsq{}}\PYG{p}{,}
+  \PYG{l+s+s1}{\PYGZsq{}game\PYGZus{}event\PYGZus{}id\PYGZsq{}}\PYG{p}{,}
+  \PYG{l+s+s1}{\PYGZsq{}lat\PYGZsq{}}\PYG{p}{,}
+  \PYG{l+s+s1}{\PYGZsq{}lon\PYGZsq{}}\PYG{p}{,}
+  \PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}made\PYGZus{}flag\PYGZsq{}}
+  \PYG{p}{]}
+ \PYG{o}{=} \PYG{n}{DATA}\PYG{p}{[}\PYG{n}{d3cols}\PYG{p}{]}
+\PYG{n}{\PYGZus{}pred} \PYG{o}{=} \PYG{n}{FOR\PYGZus{}PREDICTION}\PYG{p}{[}\PYG{n}{d3cols}\PYG{p}{]}\PYG{o}{.}\PYG{n}{drop}\PYG{p}{(}\PYG{n}{columns} \PYG{o}{=} \PYG{p}{[}\PYG{n}{DEPENDENT}\PYG{p}{])}\PYG{o}{.}\PYG{n}{fillna}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+\PYG{l+s+sd}{\PYGZdq{}Fit d3\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{n}{del3} \PYG{o}{=} \PYG{n}{LogRegModel}\PYG{p}{(}\PYG{n}{d3}\PYG{p}{)}
+\PYG{n}{mmarize\PYGZus{}model}\PYG{p}{(}\PYG{n}{model3}\PYG{p}{)}
+
+
+
+\PYG{l+s+sd}{\PYGZdq{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{} Model 4 \PYGZhy{} LDA \PYGZhy{} Predicted Log Loss: 9.351 \PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{n}{a} \PYG{o}{=} \PYG{n}{LinearDiscriminantAnalysis}\PYG{p}{()}
+\PYG{n}{a} \PYG{o}{=} \PYG{n}{lda}\PYG{o}{.}\PYG{n}{fit}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{train\PYGZus{}x}\PYG{p}{,} \PYG{n}{model2}\PYG{o}{.}\PYG{n}{train\PYGZus{}y}\PYG{p}{)}
+\PYG{n}{a\PYGZus{}x} \PYG{o}{=} \PYG{n}{lda}\PYG{o}{.}\PYG{n}{transform}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{train\PYGZus{}x}\PYG{p}{)}
+\PYG{o}{=} \PYG{n}{lda}\PYG{o}{.}\PYG{n}{transform}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{test\PYGZus{}x}\PYG{p}{)}
+\PYG{n}{labels} \PYG{o}{=} \PYG{n}{lda}\PYG{o}{.}\PYG{n}{predict}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{test\PYGZus{}x}\PYG{p}{)}
+
+\PYG{n}{g\PYGZus{}loss}\PYG{p}{(}\PYG{n}{model2}\PYG{o}{.}\PYG{n}{test\PYGZus{}y}\PYG{p}{,} \PYG{n}{z}\PYG{p}{)}
+
+
+\PYG{l+s+sd}{\PYGZdq{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{} Model 5 \PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{\PYGZdq{}Dataset: d5 | Prediction set: d5\PYGZus{}pred}
+\PYG{l+s+sd}{  \PYGZhy{} shot\PYGZus{}distance only predictor}
+\PYG{l+s+sd}{\PYGZdq{}}
+
+ \PYG{o}{=} \PYG{n}{DATA}\PYG{p}{[[}\PYG{n}{DEPENDENT}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}distance\PYGZsq{}}\PYG{p}{]]}
+\PYG{c+c1}{d3\PYGZus{}pred = FOR\PYGZus{}PREDICTION[d3cols].drop(columns = [DEPENDENT]).fillna(0)}
+
+\PYG{l+s+sd}{\PYGZdq{}Fit d5\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+ \PYG{o}{=} \PYG{n}{sm}\PYG{o}{.}\PYG{n}{add\PYGZus{}constant}\PYG{p}{(}\PYG{n}{d5}\PYG{p}{)}
+\PYG{n}{del5} \PYG{o}{=} \PYG{n}{LogR}\PYG{p}{(}\PYG{n}{d5}\PYG{p}{,} \PYG{n}{DEPENDENT}\PYG{p}{)}
+\PYG{n}{del5}\PYG{o}{.}\PYG{n}{sm} \PYG{o}{=} \PYG{n}{model5}\PYG{o}{.}\PYG{n}{statsmodel}\PYG{p}{()}
+
+\PYG{n}{del5}\PYG{o}{.}\PYG{n}{yhat} \PYG{o}{=} \PYG{n}{model5}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{predict}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{test\PYGZus{}x}\PYG{p}{)}
+
+\PYG{n}{del5} \PYG{o}{=} \PYG{n}{LogRegModel}\PYG{p}{(}\PYG{n}{d5}\PYG{p}{)}
+ \PYG{o}{=} \PYG{n}{model5}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{summary2}\PYG{p}{()}
+
+ \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{exp}\PYG{p}{(}\PYG{n}{s5}\PYG{o}{.}\PYG{n}{tables}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{][}\PYG{l+s+s1}{\PYGZsq{}Coef.\PYGZsq{}}\PYG{p}{])}
+
+
+\PYG{l+s+sd}{\PYGZdq{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{} Model 6 \PYGZhy{} Log Loss: 0.669 \PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{\PYGZdq{}Dataset: d6 | Prediction set: d6\PYGZus{}pred}
+\PYG{l+s+sd}{  \PYGZhy{} Allen\PYGZsq{}s model 5}
+\PYG{l+s+sd}{\PYGZdq{}}
+
+ \PYG{o}{=} \PYG{n}{DATA}\PYG{p}{[[}\PYG{n}{DEPENDENT}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}shot\PYGZus{}distance\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}playoffs\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}arena\PYGZus{}temp\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}game\PYGZus{}event\PYGZus{}id\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}lat\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}lon\PYGZsq{}}\PYG{p}{]]}
+
+\PYG{l+s+sd}{\PYGZdq{}Fit d6\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{c+c1}{d5 = sm.add\PYGZus{}constant(d5)}
+\PYG{c+c1}{model5 = LogR(d5, DEPENDENT)}
+
+
+\PYG{n}{del6} \PYG{o}{=} \PYG{n}{LogRegModel}\PYG{p}{(}\PYG{n}{d6}\PYG{p}{)}
+ \PYG{o}{=} \PYG{n}{model6}\PYG{o}{.}\PYG{n}{sm}\PYG{o}{.}\PYG{n}{summary2}\PYG{p}{()}
+
+
+ \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{exp}\PYG{p}{(}\PYG{n}{s6}\PYG{o}{.}\PYG{n}{tables}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{][}\PYG{l+s+s1}{\PYGZsq{}Coef.\PYGZsq{}}\PYG{p}{])}
+
+\PYG{n}{ot\PYGZus{}confusion\PYGZus{}matrix}\PYG{p}{(}\PYG{n}{model6}\PYG{p}{)}
+
+\PYG{n}{del6}\PYG{o}{.}\PYG{n}{sensitivity}\PYG{p}{()}
+\PYG{n}{del6}\PYG{o}{.}\PYG{n}{specificity}\PYG{p}{()}
+
+
+\PYG{c+c1}{ Data Overview}
+
+\PYG{c+c1}{TODO: Add Univariate Plots}
+  \PYG{c+c1}{\PYGZsh{} QQ}
+  \PYG{c+c1}{\PYGZsh{} Hist}
+
+
+
+
+\PYG{o}{=} \PYG{n}{d6} \PYG{o}{.}\PYG{n}{select\PYGZus{}dtypes}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{number}\PYG{p}{)}
+
+
+\PYG{c+c1}{cNoFocus = \PYGZdq{}red\PYGZdq{}}
+
+
+\PYG{c+c1}{ Correlation Matrix}
+
+
+\PYG{n}{TA}\PYG{o}{.}\PYG{n}{shape}
+
+\PYG{c+c1}{ better model was at the cost of explainability and violation of parsimony}
+
+\PYG{l+s+sd}{\PYGZdq{}}
+\PYG{l+s+sd}{The \PYGZus{}\PYGZus{}odds of Kobe making a shot decrease with respect to the distance he is from the hoop\PYGZus{}\PYGZus{}.  If there is evidence of this, quantify this relationship.  (CIs, plots, etc.)}
+
+\PYG{l+s+sd}{ Yes. His odds go down by  \PYGZhy{}1.87\PYGZpc{} +\PYGZhy{}.85 \PYGZpc{}  (\PYGZhy{}2.72\PYGZpc{} \PYGZhy{}1.01\PYGZpc{}) for every additional foot away from the basket.}
+\PYG{l+s+sd}{\PYGZdq{}}
+
+\PYG{l+s+sd}{\PYGZdq{}}
+\PYG{l+s+sd}{The \PYGZus{}\PYGZus{}probability of Kobe making a shot decreases linearly with respect to the distance he is from the hoop\PYGZus{}\PYGZus{}.    If there is evidence of this, quantify this relationship.  (CIs, plots, etc.)}
+
+\PYG{l+s+sd}{ It doesn\PYGZsq{}t. Show pdf plot.}
+
+\PYG{l+s+sd}{near up to 23ft, but is not at zero at 23ft, so probability curve must be curved.}
+
+
+\PYG{l+s+sd}{\PYGZdq{}}
+
+
+
+\PYG{l+s+sd}{\PYGZdq{}}
+\PYG{l+s+sd}{The relationship between the \PYGZus{}\PYGZus{}distance Kobe is from the basket and the odds of him making the shot is different if they are in the playoffs\PYGZus{}\PYGZus{}.  Quantify your findings with statistical evidence one way or the other. (Tests, CIs, plots, etc.) }
+
+
+
+\PYG{l+s+sd}{\PYGZdq{}}
+
+
+\PYG{l+s+sd}{\PYGZdq{} Odds Ratios}
+\PYG{l+s+sd}{ds ratios that are greater than 1 indicate that the event is more likely to occur as the predictor increases. Odds ratios that are less than 1 indicate that the event is less likely to occur as the predictor increases.}
+
+\PYG{l+s+sd}{tps://www.predictiveanalyticsworld.com/patimes/on\PYGZhy{}variable\PYGZhy{}importance\PYGZhy{}in\PYGZhy{}logistic\PYGZhy{}regression/9649/}
+
+\PYG{l+s+sd}{ The model indicates a 4.25\PYGZpc{} increase in shooting ability during the playoffs, however, the result was not statistically significant.}
+
+\PYG{l+s+sd}{\PYGZsq{}s overlap and contain zero. zome evidence but not enough to conclude there is a difference.}
+
+
+\PYG{l+s+sd}{om sklearn.linear\PYGZus{}model import LogisticRegression}
+\PYG{l+s+sd}{om sklearn.model\PYGZus{}selection import train\PYGZus{}test\PYGZus{}split}
+\PYG{l+s+sd}{om sklearn.feature\PYGZus{}selection import chi2}
+\PYG{l+s+sd}{om sklearn.metrics import (}
+\PYG{l+s+sd}{      classification\PYGZus{}report,}
+\PYG{l+s+sd}{      roc\PYGZus{}curve,}
+\PYG{l+s+sd}{      auc}
+
+\PYG{l+s+sd}{      )}
+\PYG{l+s+sd}{port pandas as pd}
+\PYG{l+s+sd}{om confusion\PYGZus{}matrix\PYGZus{}pretty import *}
+\PYG{l+s+sd}{port statsmodels.api as sm}
+\PYG{l+s+sd}{om sklearn.metrics import confusion\PYGZus{}matrix}
+
+\PYG{l+s+sd}{ass LogR(LogisticRegression):}
+\PYG{l+s+sd}{  \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Sparse} \PYG{n}{extension} \PYG{n}{of} \PYG{n}{sklearn}\PYG{o}{.}\PYG{n}{linear\PYGZus{}model}\PYG{o}{.}\PYG{n}{LogisticRegression}\PYG{o}{.}
+
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{  def \PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}(self,}
+\PYG{l+s+sd}{          data: pd.DataFrame,}
+\PYG{l+s+sd}{          dependent\PYGZus{}name: None,}
+\PYG{l+s+sd}{          store\PYGZus{}covariance: bool = True,}
+\PYG{l+s+sd}{          test\PYGZus{}size: float = 0.25,}
+\PYG{l+s+sd}{          fit\PYGZus{}intercept = False):}
+\PYG{l+s+sd}{      super().\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}(solver = \PYGZsq{}lbfgs\PYGZsq{},}
+\PYG{l+s+sd}{                      fit\PYGZus{}intercept = fit\PYGZus{}intercept}
+\PYG{l+s+sd}{                      )}
+\PYG{l+s+sd}{      self.yhat = None}
+
+\PYG{l+s+sd}{      self.train\PYGZus{}x, self.test\PYGZus{}x, self.train\PYGZus{}y, self.test\PYGZus{}y = train\PYGZus{}test\PYGZus{}split(data.drop(columns = [dependent\PYGZus{}name]), data[dependent\PYGZus{}name], test\PYGZus{}size = test\PYGZus{}size, random\PYGZus{}state = 0)}
+
+\PYG{l+s+sd}{  def \PYGZus{}\PYGZus{}repr\PYGZus{}\PYGZus{}(self):}
+\PYG{l+s+sd}{      return super().\PYGZus{}\PYGZus{}repr\PYGZus{}\PYGZus{}()}
+
+\PYG{l+s+sd}{  def \PYGZus{}\PYGZus{}str\PYGZus{}\PYGZus{}(self):}
+\PYG{l+s+sd}{      return super().\PYGZus{}\PYGZus{}str\PYGZus{}\PYGZus{}()}
+
+\PYG{l+s+sd}{  def describe\PYGZus{}features(self):}
+
+\PYG{l+s+sd}{      print(f\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+      \PYG{n}{X}\PYG{p}{:} \PYG{n}{features}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{train\PYGZus{}x}\PYG{p}{)\PYGZcb{}}
+
+          \PYG{n}{dtypes}\PYG{p}{:}
+          \PYG{o}{\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}\PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{})}
+
+\PYG{l+s+s2}{      for k, v in self.train\PYGZus{}x.dtypes.sort\PYGZus{}index().items():}
+\PYG{l+s+s2}{          print(f\PYGZsq{}\PYGZsq{}\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t\PYGZbs{}t}\PYG{l+s+s2}{\PYGZob{}k:\PYGZlt{}30\PYGZcb{}\PYGZob{}v.name:\PYGZcb{} \PYGZsq{}\PYGZsq{}\PYGZsq{})}
+
+\PYG{l+s+s2}{      print(f\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+      \PYG{n}{Y}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{train\PYGZus{}y}\PYG{o}{.}\PYG{n}{name}\PYG{p}{\PYGZcb{}:} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{train\PYGZus{}y}\PYG{o}{.}\PYG{n}{dtype}\PYG{p}{\PYGZcb{}}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{})}
+
+\PYG{l+s+sd}{  def confusion\PYGZus{}matrix(self, test = False, plot = True):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Generate}\PYG{p}{,} \PYG{o+ow}{and} \PYG{n}{optionally} \PYG{n}{plot}\PYG{p}{,} \PYG{n}{a} \PYG{n}{confusion} \PYG{n}{matrix} \PYG{k}{for} \PYG{n}{the} \PYG{n}{test} \PYG{o+ow}{or} \PYG{n}{train} \PYG{n}{datasets}
+
+      \PYG{n}{Keyword} \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{plot} \PYG{p}{\PYGZob{}}\PYG{n+nb}{bool}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{optionally} \PYG{n}{plot} \PYG{n}{the} \PYG{n}{confusion} \PYG{n}{matrix} \PYG{p}{(}\PYG{n}{default}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{True}\PYG{p}{\PYGZcb{})}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{confusion} \PYG{n}{matrix}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      if test:}
+\PYG{l+s+sd}{          x = self.test\PYGZus{}x}
+\PYG{l+s+sd}{          y = self.test\PYGZus{}y}
+\PYG{l+s+sd}{      else:}
+\PYG{l+s+sd}{          x = self.train\PYGZus{}x}
+\PYG{l+s+sd}{          y = self.train\PYGZus{}y}
+
+\PYG{l+s+sd}{      \PYGZsh{} if y is not None and x is not None:}
+\PYG{l+s+sd}{      self.cm = pd.DataFrame(confusion\PYGZus{}matrix(y, self.sm2.fitted.predict(x)), index = [0, 1], columns = [0, 1])}
+\PYG{l+s+sd}{      if plot:}
+\PYG{l+s+sd}{          pretty\PYGZus{}plot\PYGZus{}confusion\PYGZus{}matrix(self.cm, cmap=\PYGZsq{}PuRd\PYGZsq{})}
+\PYG{l+s+sd}{      return self.cm}
+\PYG{l+s+sd}{      \PYGZsh{} else:}
+\PYG{l+s+sd}{      \PYGZsh{}     print(\PYGZsq{}X or Y is empty. Check parameters.\PYGZsq{})}
+\PYG{l+s+sd}{      \PYGZsh{}     return None}
+
+\PYG{l+s+sd}{  def score(self) \PYGZhy{}\PYGZgt{} float:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Wrapper} \PYG{k}{for} \PYG{n}{parent} \PYG{k}{class} \PYG{n+nc}{method} \PYG{n}{using} \PYG{n}{xy}\PYG{l+s+s1}{\PYGZsq{}s stored in child class object.  Scores model fit using test data.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n+nb}{float} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{model} \PYG{n}{score}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      x = self.test\PYGZus{}x}
+\PYG{l+s+sd}{      y = self.test\PYGZus{}y}
+
+\PYG{l+s+sd}{      score = super().score(x, y)}
+\PYG{l+s+sd}{      print(f\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{      Features:}
+\PYG{l+s+sd}{          \PYGZob{}\PYGZsq{} | \PYGZsq{}.join([x for x in x.columns])\PYGZcb{}}
+
+\PYG{l+s+sd}{      Accuracy: \PYGZob{}score:.2\PYGZpc{}\PYGZcb{}}
+
+\PYG{l+s+sd}{      \PYGZsq{}\PYGZsq{}\PYGZsq{})}
+\PYG{l+s+sd}{      return score}
+
+\PYG{l+s+sd}{  def plot\PYGZus{}separability() \PYGZhy{}\PYGZgt{} None:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Plots} \PYG{n}{a} \PYG{n}{heatmap} \PYG{n}{of} \PYG{n}{fitted} \PYG{n}{coefficients}\PYG{p}{,} \PYG{n}{highlighting} \PYG{n}{features} \PYG{n}{that} \PYG{n}{are} \PYG{n}{more} \PYG{n}{likely} \PYG{n}{seperable} \PYG{n}{by} \PYG{n}{a} \PYG{n}{linear} \PYG{n}{hyperplane}\PYG{o}{.}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      x = self.train\PYGZus{}x}
+\PYG{l+s+sd}{      if len(x.columns.tolist()) == len(self.coef\PYGZus{}[0]):}
+\PYG{l+s+sd}{          fig, ax = plt.subplots(1, 1, figsize=(12, 10))}
+\PYG{l+s+sd}{          sns.heatmap(pd.DataFrame(self.coef\PYGZus{}[0],}
+\PYG{l+s+sd}{                                  columns=[1],}
+\PYG{l+s+sd}{                                  index=x.columns.tolist()),}
+\PYG{l+s+sd}{                      ax=ax, cmap=\PYGZsq{}RdBu\PYGZsq{}, annot=True)}
+
+\PYG{l+s+sd}{          plt.title(\PYGZsq{}LDA Feature Separability\PYGZsq{})}
+\PYG{l+s+sd}{          plt.tight\PYGZus{}layout()}
+\PYG{l+s+sd}{      else:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Length of input \PYGZdq{}x\PYGZdq{} does not match number of coefficients. Refit the model using the dependents in x.\PYGZsq{})}
+\PYG{l+s+sd}{          return None}
+
+\PYG{l+s+sd}{  def fit(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Wrapper} \PYG{k}{for} \PYG{n}{parent} \PYG{k}{class} \PYG{n+nc}{method} \PYG{n}{using} \PYG{n}{xy}\PYG{l+s+s1}{\PYGZsq{}s stored in child class object.}
+
+      \PYG{n}{Fit} \PYG{n}{the} \PYG{n}{model}\PYG{o}{.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{Series} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{array} \PYG{n}{of} \PYG{n}{x} \PYG{n}{values} \PYG{n}{projected} \PYG{n}{to} \PYG{n}{maximize} \PYG{n}{seperation}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      super().fit(self.train\PYGZus{}x, self.train\PYGZus{}y)}
+
+\PYG{l+s+sd}{  def predict(self, x):}
+
+\PYG{l+s+sd}{      self.yhat = super().predict(x)}
+\PYG{l+s+sd}{      return self.yhat}
+
+\PYG{l+s+sd}{  def transform(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Wrapper} \PYG{k}{for} \PYG{n}{parent} \PYG{k}{class} \PYG{n+nc}{method} \PYG{n}{using} \PYG{n}{xy}\PYG{l+s+s1}{\PYGZsq{}s stored in child class object.}
+
+      \PYG{n}{Transform} \PYG{n}{x} \PYG{n}{to} \PYG{n}{maximize} \PYG{n}{seperation}\PYG{o}{.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{Series} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{array} \PYG{n}{of} \PYG{n}{x} \PYG{n}{values} \PYG{n}{projected} \PYG{n}{to} \PYG{n}{maximize} \PYG{n}{seperation}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      return super().transform(self.x)}
+
+\PYG{l+s+sd}{  def log\PYGZus{}loss(self, x = None):}
+
+\PYG{l+s+sd}{      if self.yhat is not None:}
+\PYG{l+s+sd}{          self.yhat = self.sm.predict(x or self.test\PYGZus{}x)}
+
+\PYG{l+s+sd}{      return round(log\PYGZus{}loss(self.test\PYGZus{}y, self.yhat), 2)}
+
+\PYG{l+s+sd}{  def \PYGZus{}decision\PYGZus{}function(self):}
+\PYG{l+s+sd}{      \PYGZsh{}TODO: Implement, time permitting}
+\PYG{l+s+sd}{      raise NotImplementedError()}
+
+\PYG{l+s+sd}{  def classification\PYGZus{}report(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Class} \PYG{n}{wrapper} \PYG{k}{for} \PYG{n}{sklearn}\PYG{o}{.}\PYG{n}{metrics}\PYG{o}{.}\PYG{n}{classification\PYGZus{}report}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      classification\PYGZus{}report(}
+\PYG{l+s+sd}{          self.test\PYGZus{}y,}
+\PYG{l+s+sd}{          self.yhat,}
+\PYG{l+s+sd}{          target\PYGZus{}names=self.classes\PYGZus{}.astype(str).tolist())}
+
+\PYG{l+s+sd}{  def statsmodel(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Model} \PYG{n}{using} \PYG{n}{statsmodels} \PYG{n}{library}\PYG{o}{.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{statsmodels} \PYG{n}{result} \PYG{n+nb}{object}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      return sm.Logit(self.train\PYGZus{}y, self.train\PYGZus{}x).fit()}
+
+\PYG{l+s+sd}{  def statsmodel\PYGZus{}(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Model} \PYG{n}{using} \PYG{n}{statsmodels} \PYG{n}{library}\PYG{o}{.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{statsmodels} \PYG{n}{result} \PYG{n+nb}{object}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      return sm.Logit(self.train\PYGZus{}y, self.train\PYGZus{}x)}
+
+
+\PYG{l+s+sd}{  def roc\PYGZus{}plot(self, sm = True):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+      \PYG{n}{Referenced} \PYG{n}{from}\PYG{p}{:}
+      \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{scikit}\PYG{o}{\PYGZhy{}}\PYG{n}{learn}\PYG{o}{.}\PYG{n}{org}\PYG{o}{/}\PYG{n}{stable}\PYG{o}{/}\PYG{n}{auto\PYGZus{}examples}\PYG{o}{/}\PYG{n}{model\PYGZus{}selection}\PYG{o}{/}\PYG{n}{plot\PYGZus{}roc\PYGZus{}crossval}\PYG{o}{.}\PYG{n}{html}\PYG{c+c1}{\PYGZsh{}sphx\PYGZhy{}glr\PYGZhy{}auto\PYGZhy{}examples\PYGZhy{}model\PYGZhy{}selection\PYGZhy{}plot\PYGZhy{}roc\PYGZhy{}crossval\PYGZhy{}py}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      y\PYGZus{}score = self.predict\PYGZus{}labels(self.test\PYGZus{}x)}
+
+\PYG{l+s+sd}{      fpr, tpr, \PYGZus{} = roc\PYGZus{}curve(self.test\PYGZus{}y, y\PYGZus{}score)}
+
+\PYG{l+s+sd}{      roc\PYGZus{}auc = auc(fpr, tpr)}
+\PYG{l+s+sd}{      plt.plot(fpr, tpr, lw=1, alpha=1,}
+\PYG{l+s+sd}{                  label=\PYGZsq{}ROC fold \PYGZpc{}d (AUC = \PYGZpc{}0.2f)\PYGZsq{} \PYGZpc{} (1, roc\PYGZus{}auc))}
+
+\PYG{l+s+sd}{      g = plt.plot([0, 1], [0, 1], linestyle=\PYGZsq{}\PYGZhy{}\PYGZhy{}\PYGZsq{}, lw=2, color=\PYGZsq{}r\PYGZsq{},}
+\PYG{l+s+sd}{              label=\PYGZsq{}Chance\PYGZsq{}, alpha=.8)}
+
+\PYG{l+s+sd}{      plt.xlim([\PYGZhy{}0.05, 1.05])}
+\PYG{l+s+sd}{      plt.ylim([\PYGZhy{}0.05, 1.05])}
+\PYG{l+s+sd}{      plt.xlabel(\PYGZsq{}False Positive Rate\PYGZsq{})}
+\PYG{l+s+sd}{      plt.ylabel(\PYGZsq{}True Positive Rate\PYGZsq{})}
+\PYG{l+s+sd}{      plt.title(\PYGZsq{}Receiver operating characteristic example\PYGZsq{})}
+\PYG{l+s+sd}{      plt.legend(loc=\PYGZdq{}lower right\PYGZdq{})}
+\PYG{l+s+sd}{      g.set\PYGZus{}title(f\PYGZsq{}Distribution of \PYGZob{}y\PYGZcb{}\PYGZsq{}, color = cNoFocus)}
+\PYG{l+s+sd}{      g.set\PYGZus{}xlabel(f\PYGZsq{}\PYGZob{}y\PYGZcb{}\PYGZsq{}, size = \PYGZsq{}xx\PYGZhy{}large\PYGZsq{}, color = cNoFocus)}
+\PYG{l+s+sd}{      g.set\PYGZus{}ylabel(f\PYGZsq{}Density\PYGZsq{}, size = \PYGZsq{}xx\PYGZhy{}large\PYGZsq{}, color = cNoFocus)}
+\PYG{l+s+sd}{      g.set\PYGZus{}xticklabels(g.get\PYGZus{}xticklabels(), size = \PYGZsq{}xx\PYGZhy{}large\PYGZsq{})}
+\PYG{l+s+sd}{      g.set\PYGZus{}yticklabels(g.get\PYGZus{}yticklabels(), size = \PYGZsq{}xx\PYGZhy{}large\PYGZsq{})}
+\PYG{l+s+sd}{      g.tick\PYGZus{}params(colors=cNoFocus)}
+\PYG{l+s+sd}{      g.spines[\PYGZsq{}bottom\PYGZsq{}].set\PYGZus{}color(cNoFocus)}
+\PYG{l+s+sd}{      g.spines[\PYGZsq{}top\PYGZsq{}].set\PYGZus{}color(cNoFocus)}
+\PYG{l+s+sd}{      g.spines[\PYGZsq{}left\PYGZsq{}].set\PYGZus{}color(cNoFocus)}
+\PYG{l+s+sd}{      g.spines[\PYGZsq{}right\PYGZsq{}].set\PYGZus{}color(cNoFocus)}
+\PYG{l+s+sd}{      g.xaxis.label.set\PYGZus{}color(cNoFocus)}
+\PYG{l+s+sd}{      g.yaxis.label.set\PYGZus{}color(cNoFocus)}
+\PYG{l+s+sd}{      return}
+
+
+\PYG{l+s+sd}{  def predict\PYGZus{}labels(self, x, thresh = 0.5):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Predict} \PYG{k}{class} \PYG{n+nc}{labels}\PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+s2}{      self.yhat = self.sm.fitted.predict(x)}
+\PYG{l+s+s2}{      pc = np.zeros(len(self.yhat))}
+\PYG{l+s+s2}{      pc[self.yhat \PYGZgt{} thresh] = 1}
+\PYG{l+s+s2}{      return pc}
+
+\PYG{l+s+s2}{  def sensitivity(self):}
+\PYG{l+s+s2}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Sensitivity} \PYG{o}{\PYGZhy{}} \PYG{n}{TP}\PYG{o}{/}\PYG{p}{(}\PYG{n}{TP}\PYG{o}{+}\PYG{n}{FN}\PYG{p}{)}\PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+s2}{      cm = self.sm.pred\PYGZus{}table()}
+\PYG{l+s+s2}{      sens = cm[0,0]/(cm[0,0]+cm[0,1])}
+\PYG{l+s+s2}{      print(\PYGZsq{}Sensitivity : \PYGZsq{}, sens )}
+\PYG{l+s+s2}{      return sens}
+
+
+\PYG{l+s+s2}{  def specificity(self):}
+\PYG{l+s+s2}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Specificity} \PYG{o}{=} \PYG{n}{TN}\PYG{o}{/}\PYG{p}{(}\PYG{n}{TN}\PYG{o}{+}\PYG{n}{FP}\PYG{p}{)}\PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+s2}{      cm = self.sm.pred\PYGZus{}table()}
+\PYG{l+s+s2}{      spec = cm[1,1]/(cm[1,0]+cm[1,1])}
+\PYG{l+s+s2}{      print(\PYGZsq{}Specificity : \PYGZsq{}, spec)}
+\PYG{l+s+s2}{      return spec}
+
+
+
+
+\PYG{l+s+s2}{f RecursiveFeatureSelection(X, y):}
+\PYG{l+s+s2}{  logreg = LogisticRegression()}
+\PYG{l+s+s2}{  rfe = RFE(logreg, 20)}
+\PYG{l+s+s2}{  rfe = rfe.fit(X.fillna(0), y.values.ravel())}
+\PYG{l+s+s2}{  return rfe}
+
+
+\PYG{l+s+s2}{Evaluate Model}
+\PYG{l+s+s2}{https://www.r\PYGZhy{}bloggers.com/evaluating\PYGZhy{}logistic\PYGZhy{}regression\PYGZhy{}models/}
+
+
+
+\PYG{l+s+s2}{ http://blog.yhat.com/posts/logistic\PYGZhy{}regression\PYGZhy{}and\PYGZhy{}python.html}
+
+\PYG{l+s+s2}{ Dont use r\PYGZhy{}sq}
+\PYG{l+s+s2}{https://stats.stackexchange.com/questions/3559/which\PYGZhy{}pseudo\PYGZhy{}r2\PYGZhy{}measure\PYGZhy{}is\PYGZhy{}the\PYGZhy{}one\PYGZhy{}to\PYGZhy{}report\PYGZhy{}for\PYGZhy{}logistic\PYGZhy{}regression\PYGZhy{}cox\PYGZhy{}s}
+
+\PYG{l+s+s2}{TODO: Kobe last minute shots are outliers}
+
+
+
+
+
+\PYG{l+s+s2}{X\PYGZus{}train, X\PYGZus{}test, y\PYGZus{}train, y\PYGZus{}test = train\PYGZus{}test\PYGZus{}split(}
+\PYG{l+s+s2}{    d3.drop(columns=[DEPENDENT]),}
+\PYG{l+s+s2}{     d3[DEPENDENT], test\PYGZus{}size=0.3, random\PYGZus{}state=0)}
+\PYG{l+s+s2}{logreg = LogisticRegression(fit\PYGZus{}intercept = True, C = 1e9)}
+\PYG{l+s+s2}{logreg.fit(X\PYGZus{}train, y\PYGZus{}train)}
+\PYG{l+s+s2}{y\PYGZus{}pred = logreg.predict(X\PYGZus{}test)}
+\PYG{l+s+s2}{print(\PYGZsq{}Accuracy of logistic regression classifier on test set: \PYGZob{}:.2f\PYGZcb{}\PYGZsq{}.format(logreg.score(X\PYGZus{}test, y\PYGZus{}test)))}
+\PYG{l+s+s2}{log\PYGZus{}loss(y\PYGZus{}test, y\PYGZus{}pred)}
+\PYG{l+s+s2}{logreg.coef\PYGZus{}}
+
+\PYG{l+s+s2}{\PYGZsh{} sm}
+\PYG{l+s+s2}{logit = sm.Logit(y\PYGZus{}train, X\PYGZus{}train)}
+\PYG{l+s+s2}{logit.fit().params}
+
+\PYG{l+s+s2}{port os}
+\PYG{l+s+s2}{port sys}
+\PYG{l+s+s2}{port seaborn as sns}
+\PYG{l+s+s2}{port matplotlib.pyplot as plt}
+\PYG{l+s+s2}{port pandas as pd}
+\PYG{l+s+s2}{port numpy as np}
+\PYG{l+s+s2}{port statsmodels.api as sm}
+\PYG{l+s+s2}{om statsmodels.stats.outliers\PYGZus{}influence import variance\PYGZus{}inflation\PYGZus{}factor}
+\PYG{l+s+s2}{om sklearn.discriminant\PYGZus{}analysis import LinearDiscriminantAnalysis}
+\PYG{l+s+s2}{om sklearn.model\PYGZus{}selection import train\PYGZus{}test\PYGZus{}split}
+\PYG{l+s+s2}{om sklearn.metrics import confusion\PYGZus{}matrix, log\PYGZus{}loss}
+\PYG{l+s+s2}{om sklearn.linear\PYGZus{}model import LogisticRegression}
+
+\PYG{l+s+s2}{port statsmodels.formula.api as smf}
+\PYG{l+s+s2}{om scipy import stats}
+\PYG{l+s+s2}{port matplotlib.pyplot as plt}
+\PYG{l+s+s2}{port numpy as np}
+\PYG{l+s+s2}{port pandas as pd}
+\PYG{l+s+s2}{om pandas.plotting import (lag\PYGZus{}plot,}
+\PYG{l+s+s2}{					autocorrelation\PYGZus{}plot,}
+\PYG{l+s+s2}{					table, scatter\PYGZus{}matrix,}
+\PYG{l+s+s2}{					boxplot)}
+
+\PYG{l+s+s2}{om patsy import dmatrices}
+\PYG{l+s+s2}{om math import degrees, acos}
+\PYG{l+s+s2}{om scipy.spatial import distance}
+
+
+\PYG{l+s+s2}{os.chdir(os.path.dirname(\PYGZus{}\PYGZus{}file\PYGZus{}\PYGZus{}))}
+\PYG{l+s+s2}{s.path.insert(0, os.getcwd()+\PYGZsq{}/src\PYGZsq{})}
+\PYG{l+s+s2}{om eda import *}
+\PYG{l+s+s2}{om confusion\PYGZus{}matrix\PYGZus{}pretty import *}
+\PYG{l+s+s2}{from plotting import *}
+
+\PYG{l+s+s2}{ass LDAB(LinearDiscriminantAnalysis):}
+\PYG{l+s+s2}{  \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Sparse} \PYG{n}{extension} \PYG{n}{of} \PYG{n}{sklearn}\PYG{o}{.}\PYG{n}{discriminant\PYGZus{}analysis}\PYG{o}{.}\PYG{n}{LinearDiscriminantAnalysis} \PYG{k}{for} \PYG{n}{handling} \PYG{n}{binary} \PYG{k}{class} \PYG{n+nc}{cases}\PYG{o}{.}
+
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{  def \PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}(self,}
+\PYG{l+s+sd}{          data: pd.DataFrame,}
+\PYG{l+s+sd}{          dependent\PYGZus{}name: None,}
+\PYG{l+s+sd}{          store\PYGZus{}covariance: bool = True,}
+\PYG{l+s+sd}{          solver = \PYGZsq{}eigen\PYGZsq{},}
+\PYG{l+s+sd}{          test\PYGZus{}size: float = 0.25):}
+\PYG{l+s+sd}{      super().\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}(}
+\PYG{l+s+sd}{                      \PYGZsh{} n\PYGZus{}components = 2,}
+\PYG{l+s+sd}{                      solver = solver,}
+\PYG{l+s+sd}{                      store\PYGZus{}covariance = store\PYGZus{}covariance}
+\PYG{l+s+sd}{                      )}
+\PYG{l+s+sd}{      self.yhat = None}
+
+\PYG{l+s+sd}{      self.train\PYGZus{}x, self.test\PYGZus{}x, self.train\PYGZus{}y, self.test\PYGZus{}y = train\PYGZus{}test\PYGZus{}split(}
+\PYG{l+s+sd}{                      data.drop(columns = [dependent\PYGZus{}name]),}
+\PYG{l+s+sd}{                      data[dependent\PYGZus{}name],}
+\PYG{l+s+sd}{                      test\PYGZus{}size = test\PYGZus{}size,}
+\PYG{l+s+sd}{                      random\PYGZus{}state = 0)}
+
+\PYG{l+s+sd}{  def \PYGZus{}\PYGZus{}repr\PYGZus{}\PYGZus{}(self):}
+\PYG{l+s+sd}{      return super().\PYGZus{}\PYGZus{}repr\PYGZus{}\PYGZus{}()}
+
+\PYG{l+s+sd}{  def \PYGZus{}\PYGZus{}str\PYGZus{}\PYGZus{}(self):}
+\PYG{l+s+sd}{      return super().\PYGZus{}\PYGZus{}str\PYGZus{}\PYGZus{}()}
+
+\PYG{l+s+sd}{  def explained\PYGZus{}variance(self) \PYGZhy{}\PYGZgt{} float:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Get} \PYG{n}{variance} \PYG{n}{explained} \PYG{n}{per} \PYG{n}{discriminant}\PYG{o}{.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n+nb}{float} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{explained} \PYG{n}{variance} \PYG{n}{ratio}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      print(f\PYGZsq{}\PYGZsq{}\PYGZsq{}Explained variance ratio:}
+\PYG{l+s+sd}{      Discriminant 1: \PYGZob{}self.explained\PYGZus{}variance\PYGZus{}ratio\PYGZus{}[0]: .2f\PYGZcb{}\PYGZsq{}\PYGZsq{}\PYGZsq{})}
+\PYG{l+s+sd}{      \PYGZsh{} return self.explained\PYGZus{}variance\PYGZus{}ratio\PYGZus{}[0]}
+
+\PYG{l+s+sd}{  def describe\PYGZus{}features(self):}
+
+\PYG{l+s+sd}{      print(f\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+      \PYG{n}{X}\PYG{p}{:} \PYG{n}{features}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{train\PYGZus{}x}\PYG{p}{)\PYGZcb{}}
+
+          \PYG{n}{dtypes}\PYG{p}{:}
+          \PYG{o}{\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZhy{}}\PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{})}
+
+\PYG{l+s+s2}{      for k, v in self.train\PYGZus{}x.dtypes.sort\PYGZus{}index().items():}
+\PYG{l+s+s2}{          print(f\PYGZsq{}\PYGZsq{}\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t\PYGZbs{}t}\PYG{l+s+s2}{\PYGZob{}k:\PYGZlt{}30\PYGZcb{}\PYGZob{}v.name:\PYGZcb{} \PYGZsq{}\PYGZsq{}\PYGZsq{})}
+
+\PYG{l+s+s2}{      print(f\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+      \PYG{n}{Y}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{train\PYGZus{}y}\PYG{o}{.}\PYG{n}{name}\PYG{p}{\PYGZcb{}:} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{train\PYGZus{}y}\PYG{o}{.}\PYG{n}{dtype}\PYG{p}{\PYGZcb{}}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{})}
+
+\PYG{l+s+sd}{  def confusion\PYGZus{}matrix(self, test = False, plot = True):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Generate}\PYG{p}{,} \PYG{o+ow}{and} \PYG{n}{optionally} \PYG{n}{plot}\PYG{p}{,} \PYG{n}{a} \PYG{n}{confusion} \PYG{n}{matrix} \PYG{k}{for} \PYG{n}{the} \PYG{n}{test} \PYG{o+ow}{or} \PYG{n}{train} \PYG{n}{datasets}
+
+      \PYG{n}{Keyword} \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{plot} \PYG{p}{\PYGZob{}}\PYG{n+nb}{bool}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{optionally} \PYG{n}{plot} \PYG{n}{the} \PYG{n}{confusion} \PYG{n}{matrix} \PYG{p}{(}\PYG{n}{default}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{True}\PYG{p}{\PYGZcb{})}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{confusion} \PYG{n}{matrix}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      if test:}
+\PYG{l+s+sd}{          x = self.test\PYGZus{}x}
+\PYG{l+s+sd}{          y = self.test\PYGZus{}y}
+\PYG{l+s+sd}{      else:}
+\PYG{l+s+sd}{          x = self.train\PYGZus{}x}
+\PYG{l+s+sd}{          y = self.train\PYGZus{}y}
+
+\PYG{l+s+sd}{      \PYGZsh{} if y is not None and x is not None:}
+\PYG{l+s+sd}{      self.cm = pd.DataFrame(confusion\PYGZus{}matrix(y, self.predict(x)), index = [0, 1], columns = [0, 1])}
+\PYG{l+s+sd}{      if plot:}
+\PYG{l+s+sd}{          pretty\PYGZus{}plot\PYGZus{}confusion\PYGZus{}matrix(self.cm, cmap=\PYGZsq{}PuRd\PYGZsq{})}
+\PYG{l+s+sd}{      return self.cm}
+\PYG{l+s+sd}{      \PYGZsh{} else:}
+\PYG{l+s+sd}{      \PYGZsh{}     print(\PYGZsq{}X or Y is empty. Check parameters.\PYGZsq{})}
+\PYG{l+s+sd}{      \PYGZsh{}     return None}
+
+\PYG{l+s+sd}{  def score(self, x, y) \PYGZhy{}\PYGZgt{} float:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Wrapper} \PYG{k}{for} \PYG{n}{parent} \PYG{k}{class} \PYG{n+nc}{method} \PYG{n}{using} \PYG{n}{xy}\PYG{l+s+s1}{\PYGZsq{}s stored in child class object.  Scores model fit using test data.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n+nb}{float} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{model} \PYG{n}{score}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      \PYGZsh{} x = self.test\PYGZus{}x}
+\PYG{l+s+sd}{      \PYGZsh{} y = self.test\PYGZus{}y}
+
+\PYG{l+s+sd}{      score = super().score(x, y)}
+\PYG{l+s+sd}{      print(f\PYGZsq{}\PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{      Features:}
+\PYG{l+s+sd}{          \PYGZob{}\PYGZsq{} | \PYGZsq{}.join([x for x in x.columns])\PYGZcb{}}
+
+\PYG{l+s+sd}{      Accuracy: \PYGZob{}score:.2\PYGZpc{}\PYGZcb{}}
+
+\PYG{l+s+sd}{      \PYGZsq{}\PYGZsq{}\PYGZsq{})}
+\PYG{l+s+sd}{      return score}
+
+\PYG{l+s+sd}{  def plot\PYGZus{}separability() \PYGZhy{}\PYGZgt{} None:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Plots} \PYG{n}{a} \PYG{n}{heatmap} \PYG{n}{of} \PYG{n}{fitted} \PYG{n}{coefficients}\PYG{p}{,} \PYG{n}{highlighting} \PYG{n}{features} \PYG{n}{that} \PYG{n}{are} \PYG{n}{more} \PYG{n}{likely} \PYG{n}{seperable} \PYG{n}{by} \PYG{n}{a} \PYG{n}{linear} \PYG{n}{hyperplane}\PYG{o}{.}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      x = self.train\PYGZus{}x}
+\PYG{l+s+sd}{      if len(x.columns.tolist()) == len(self.coef\PYGZus{}[0]):}
+\PYG{l+s+sd}{          fig, ax = plt.subplots(1, 1, figsize=(12, 10))}
+\PYG{l+s+sd}{          sns.heatmap(pd.DataFrame(self.coef\PYGZus{}[0],}
+\PYG{l+s+sd}{                                  columns=[1],}
+\PYG{l+s+sd}{                                  index=x.columns.tolist()),}
+\PYG{l+s+sd}{                      ax=ax, cmap=\PYGZsq{}RdBu\PYGZsq{}, annot=True)}
+
+\PYG{l+s+sd}{          plt.title(\PYGZsq{}LDA Feature Separability\PYGZsq{})}
+\PYG{l+s+sd}{          plt.tight\PYGZus{}layout()}
+\PYG{l+s+sd}{      else:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Length of input \PYGZdq{}x\PYGZdq{} does not match number of coefficients. Refit the model using the dependents in x.\PYGZsq{})}
+\PYG{l+s+sd}{          return None}
+
+\PYG{l+s+sd}{  def fit(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Wrapper} \PYG{k}{for} \PYG{n}{parent} \PYG{k}{class} \PYG{n+nc}{method} \PYG{n}{using} \PYG{n}{xy}\PYG{l+s+s1}{\PYGZsq{}s stored in child class object.}
+
+      \PYG{n}{Fit} \PYG{n}{the} \PYG{n}{model}\PYG{o}{.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{Series} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{array} \PYG{n}{of} \PYG{n}{x} \PYG{n}{values} \PYG{n}{projected} \PYG{n}{to} \PYG{n}{maximize} \PYG{n}{seperation}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      super().fit(self.train\PYGZus{}x, self.train\PYGZus{}y)}
+
+\PYG{l+s+sd}{  def predict(self, x):}
+
+\PYG{l+s+sd}{      self.yhat = super().predict(x)}
+\PYG{l+s+sd}{      return self.yhat}
+
+\PYG{l+s+sd}{  def transform(self, x):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Wrapper} \PYG{k}{for} \PYG{n}{parent} \PYG{k}{class} \PYG{n+nc}{method} \PYG{n}{using} \PYG{n}{xy}\PYG{l+s+s1}{\PYGZsq{}s stored in child class object.}
+
+      \PYG{n}{Transform} \PYG{n}{x} \PYG{n}{to} \PYG{n}{maximize} \PYG{n}{seperation}\PYG{o}{.}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{Series} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{array} \PYG{n}{of} \PYG{n}{x} \PYG{n}{values} \PYG{n}{projected} \PYG{n}{to} \PYG{n}{maximize} \PYG{n}{seperation}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      return super().transform(x)}
+
+\PYG{l+s+sd}{  def log\PYGZus{}loss(self, x = None):}
+
+\PYG{l+s+sd}{      if self.yhat is not None:}
+\PYG{l+s+sd}{          self.yhat = self.predict(x or self.test\PYGZus{}x)}
+
+\PYG{l+s+sd}{      return round(log\PYGZus{}loss(self.test\PYGZus{}y, self.yhat), 2)}
+
+\PYG{l+s+sd}{  def \PYGZus{}decision\PYGZus{}function(self):}
+\PYG{l+s+sd}{      \PYGZsh{}TODO: Implement, time permitting}
+\PYG{l+s+sd}{      raise NotImplementedError()}
+
+\PYG{l+s+sd}{  def classification\PYGZus{}report(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Class} \PYG{n}{wrapper} \PYG{k}{for} \PYG{n}{sklearn}\PYG{o}{.}\PYG{n}{metrics}\PYG{o}{.}\PYG{n}{classification\PYGZus{}report}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      classification\PYGZus{}report(}
+\PYG{l+s+sd}{          self.test\PYGZus{}y,}
+\PYG{l+s+sd}{          self.yhat,}
+\PYG{l+s+sd}{          target\PYGZus{}names=self.classes\PYGZus{}.astype(str).tolist())}
+
+\PYG{l+s+sd}{  def roc\PYGZus{}plot(self):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+      \PYG{n}{Referenced} \PYG{n}{from}\PYG{p}{:}
+      \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{scikit}\PYG{o}{\PYGZhy{}}\PYG{n}{learn}\PYG{o}{.}\PYG{n}{org}\PYG{o}{/}\PYG{n}{stable}\PYG{o}{/}\PYG{n}{auto\PYGZus{}examples}\PYG{o}{/}\PYG{n}{model\PYGZus{}selection}\PYG{o}{/}\PYG{n}{plot\PYGZus{}roc\PYGZus{}crossval}\PYG{o}{.}\PYG{n}{html}\PYG{c+c1}{\PYGZsh{}sphx\PYGZhy{}glr\PYGZhy{}auto\PYGZhy{}examples\PYGZhy{}model\PYGZhy{}selection\PYGZhy{}plot\PYGZhy{}roc\PYGZhy{}crossval\PYGZhy{}py}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      y\PYGZus{}score = self.decision\PYGZus{}function(self.test\PYGZus{}x)}
+
+\PYG{l+s+sd}{      fpr, tpr, \PYGZus{} = roc\PYGZus{}curve(self.test\PYGZus{}y, y\PYGZus{}score)}
+
+\PYG{l+s+sd}{      roc\PYGZus{}auc = auc(fpr, tpr)}
+\PYG{l+s+sd}{      plt.plot(fpr, tpr, lw=1, alpha=1,}
+\PYG{l+s+sd}{                  label=\PYGZsq{}ROC fold \PYGZpc{}d (AUC = \PYGZpc{}0.2f)\PYGZsq{} \PYGZpc{} (1, roc\PYGZus{}auc))}
+
+\PYG{l+s+sd}{      plt.plot([0, 1], [0, 1], linestyle=\PYGZsq{}\PYGZhy{}\PYGZhy{}\PYGZsq{}, lw=2, color=\PYGZsq{}r\PYGZsq{},}
+\PYG{l+s+sd}{              label=\PYGZsq{}Chance\PYGZsq{}, alpha=.8)}
+
+\PYG{l+s+sd}{      plt.xlim([\PYGZhy{}0.05, 1.05])}
+\PYG{l+s+sd}{      plt.ylim([\PYGZhy{}0.05, 1.05])}
+\PYG{l+s+sd}{      plt.xlabel(\PYGZsq{}False Positive Rate\PYGZsq{})}
+\PYG{l+s+sd}{      plt.ylabel(\PYGZsq{}True Positive Rate\PYGZsq{})}
+\PYG{l+s+sd}{      plt.title(\PYGZsq{}Receiver operating characteristic example\PYGZsq{})}
+\PYG{l+s+sd}{      plt.legend(loc=\PYGZdq{}lower right\PYGZdq{})}
+\PYG{l+s+sd}{      plt.show()}
+
+
+
+
+\PYG{l+s+sd}{\PYGZdq{}}
+\PYG{n}{sumptions}\PYG{p}{:}
+  \PYG{o}{\PYGZhy{}} \PYG{n}{Each} \PYG{k}{class} \PYG{n+nc}{must} \PYG{n}{be}\PYG{p}{:}
+      \PYG{o}{\PYGZhy{}} \PYG{n}{normally} \PYG{n}{distributed}
+      \PYG{o}{\PYGZhy{}} \PYG{n}{identical} \PYG{n}{cov} \PYG{n}{matrices}
+      \PYG{o}{\PYGZhy{}} \PYG{n}{independent}
+
+\PYG{l+s+sd}{\PYGZdq{}}
+
+\PYG{l+s+sd}{ \PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{} == \PYGZdq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZdq{}:}
+
+
+\PYG{l+s+sd}{  \PYGZsh{}! Try full model}
+\PYG{l+s+sd}{  model = LDAB(data.fillna(0), DEPENDENT)}
+\PYG{l+s+sd}{  model.fit()}
+\PYG{l+s+sd}{  model.explained\PYGZus{}variance()}
+\PYG{l+s+sd}{  model.score()}
+\PYG{l+s+sd}{  model.get\PYGZus{}confusion\PYGZus{}matrix()}
+\PYG{l+s+sd}{  model.plot\PYGZus{}separability()}
+\PYG{l+s+sd}{  model\PYGZus{}fi = model.feature\PYGZus{}importance()}
+\PYG{l+s+sd}{  model.log\PYGZus{}loss()}
+
+\PYG{l+s+sd}{  \PYGZsh{}! Try reduced model}
+\PYG{l+s+sd}{  data\PYGZus{}reduced = data[model\PYGZus{}fi.index]}
+
+\PYG{l+s+sd}{  ldab\PYGZus{}reduced = LDAB(data\PYGZus{}reduced, DEPENDENT)}
+\PYG{l+s+sd}{  ldab\PYGZus{}reduced.fit()}
+\PYG{l+s+sd}{  ldab\PYGZus{}reduced.explained\PYGZus{}variance()}
+\PYG{l+s+sd}{  ldab\PYGZus{}reduced.score\PYGZus{}()}
+\PYG{l+s+sd}{  ldab\PYGZus{}reduced.get\PYGZus{}confusion\PYGZus{}matrix()}
+\PYG{l+s+sd}{  ldab\PYGZus{}reduced.plot\PYGZus{}separability()}
+\PYG{l+s+sd}{  ldab\PYGZus{}reduced.log\PYGZus{}loss()}
+
+\PYG{l+s+sd}{  disc1 = ldab\PYGZus{}reduced.fit\PYGZus{}transform(train\PYGZus{}x\PYGZus{}reduced, train\PYGZus{}y)}
+
+
+\PYG{l+s+sd}{  \PYGZsh{} Plot single discriminant}
+\PYG{l+s+sd}{  sns.distplot(disc1)}
+
+\PYG{l+s+sd}{  \PYGZsh{} TODO: Add plots}
+
+\PYG{l+s+sd}{  \PYGZsh{}! Yes! Shows no seperation}
+
+\PYG{l+s+sd}{  sns.pairplot(temp\PYGZus{}x,}
+\PYG{l+s+sd}{          hue=\PYGZdq{}shot\PYGZus{}made\PYGZus{}flag\PYGZdq{},}
+\PYG{l+s+sd}{          palette=\PYGZdq{}husl\PYGZdq{},}
+\PYG{l+s+sd}{          markers = [\PYGZsq{}\PYGZlt{}\PYGZsq{}, \PYGZsq{}\PYGZgt{}\PYGZsq{}],}
+\PYG{l+s+sd}{          plot\PYGZus{}kws = \PYGZob{}}
+\PYG{l+s+sd}{              \PYGZsq{}alpha\PYGZsq{}: 0.5,}
+\PYG{l+s+sd}{          \PYGZcb{},}
+\PYG{l+s+sd}{          diag\PYGZus{}kws = \PYGZob{}}
+
+\PYG{l+s+sd}{          \PYGZcb{},}
+\PYG{l+s+sd}{          )}
+
+\PYG{l+s+sd}{  \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+  \PYG{n}{Conclusion}\PYG{p}{:}
+
+  \PYG{n}{Reduced} \PYG{n}{model}\PYG{p}{,} \PYG{k}{with} \PYG{n}{only} \PYG{l+m+mi}{2} \PYG{n}{features}\PYG{p}{,} \PYG{n}{yields} \PYG{n}{results} \PYG{n}{effectively} \PYG{n}{equivalent} \PYG{n}{to} \PYG{n}{those} \PYG{n}{of} \PYG{n}{the} \PYG{n}{full} \PYG{n}{model} \PYG{n}{that} \PYG{n}{uses} \PYG{l+m+mi}{13} \PYG{n}{features}\PYG{o}{.}
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{  import os}
+\PYG{l+s+sd}{  import seaborn as sns}
+\PYG{l+s+sd}{  import matplotlib.pyplot as plt}
+\PYG{l+s+sd}{  import pandas as pd}
+\PYG{l+s+sd}{  import numpy as np}
+\PYG{l+s+sd}{  import statsmodels.api as sm}
+\PYG{l+s+sd}{  from statsmodels.stats.outliers\PYGZus{}influence import variance\PYGZus{}inflation\PYGZus{}factor}
+\PYG{l+s+sd}{  from sklearn.discriminant\PYGZus{}analysis import LinearDiscriminantAnalysis}
+\PYG{l+s+sd}{  from sklearn import linear\PYGZus{}model}
+\PYG{l+s+sd}{  import statsmodels.formula.api as smf}
+\PYG{l+s+sd}{  from scipy import stats}
+\PYG{l+s+sd}{  import matplotlib.pyplot as plt}
+\PYG{l+s+sd}{  import numpy as np}
+\PYG{l+s+sd}{  import pandas as pd}
+\PYG{l+s+sd}{  from pandas.plotting import (lag\PYGZus{}plot,}
+\PYG{l+s+sd}{                              autocorrelation\PYGZus{}plot,}
+\PYG{l+s+sd}{                              table, scatter\PYGZus{}matrix,}
+\PYG{l+s+sd}{                              boxplot)}
+
+\PYG{l+s+sd}{  from patsy import dmatrices}
+\PYG{l+s+sd}{  from math import degrees, acos}
+\PYG{l+s+sd}{  from scipy.spatial import distance}
+
+
+
+\PYG{l+s+sd}{  pd.options.display.max\PYGZus{}rows = None}
+\PYG{l+s+sd}{  pd.set\PYGZus{}option(\PYGZsq{}display.float\PYGZus{}format\PYGZsq{}, lambda x: \PYGZsq{}\PYGZpc{}.3f\PYGZsq{} \PYGZpc{} x)}
+\PYG{l+s+sd}{  pd.set\PYGZus{}option(\PYGZsq{}large\PYGZus{}repr\PYGZsq{}, \PYGZsq{}truncate\PYGZsq{})}
+\PYG{l+s+sd}{  pd.set\PYGZus{}option(\PYGZsq{}precision\PYGZsq{},2)}
+
+\PYG{l+s+sd}{  \PYGZsh{} Matplotlib global config}
+\PYG{l+s+sd}{  plt.rcParams.update(\PYGZob{}\PYGZsq{}legend.fontsize\PYGZsq{}: \PYGZsq{}x\PYGZhy{}large\PYGZsq{},}
+\PYG{l+s+sd}{            \PYGZsq{}figure.figsize\PYGZsq{}: (10, 6),}
+\PYG{l+s+sd}{           \PYGZsq{}axes.labelsize\PYGZsq{}: \PYGZsq{}large\PYGZsq{},}
+\PYG{l+s+sd}{           \PYGZsq{}axes.titlesize\PYGZsq{}:\PYGZsq{}xx\PYGZhy{}large\PYGZsq{},}
+\PYG{l+s+sd}{           \PYGZsq{}xtick.labelsize\PYGZsq{}:\PYGZsq{}small\PYGZsq{},}
+\PYG{l+s+sd}{           \PYGZsq{}ytick.labelsize\PYGZsq{}:\PYGZsq{}small\PYGZsq{},}
+\PYG{l+s+sd}{           \PYGZsq{}savefig.dpi\PYGZsq{} : 300,}
+\PYG{l+s+sd}{           \PYGZsq{}savefig.format\PYGZsq{} : \PYGZsq{}png\PYGZsq{},}
+\PYG{l+s+sd}{           \PYGZsq{}savefig.transparent\PYGZsq{} : True,}
+\PYG{l+s+sd}{           \PYGZsq{}axes.labelpad\PYGZsq{} : 10,}
+\PYG{l+s+sd}{           \PYGZsq{}axes.titlepad\PYGZsq{} : 10,}
+\PYG{l+s+sd}{           \PYGZsq{}axes.titleweight\PYGZsq{}: \PYGZsq{}bold\PYGZsq{}}
+\PYG{l+s+sd}{           \PYGZcb{})}
+
+\PYG{l+s+sd}{  \PYGZsh{} plt.style.use(\PYGZsq{}seaborn\PYGZhy{}deep\PYGZsq{})}
+
+
+\PYG{l+s+sd}{  \PYGZsh{} Define Contants}
+
+\PYG{l+s+sd}{  DEPENDENT = \PYGZdq{}shot\PYGZus{}made\PYGZus{}flag\PYGZdq{}}
+\PYG{l+s+sd}{  PERIODS\PYGZus{}IN\PYGZus{}GAME = 4}
+\PYG{l+s+sd}{  MIN\PYGZus{}IN\PYGZus{}PERIOD = 12}
+\PYG{l+s+sd}{  MIN\PYGZus{}IN\PYGZus{}GAME = MIN\PYGZus{}IN\PYGZus{}PERIOD * PERIODS\PYGZus{}IN\PYGZus{}GAME}
+\PYG{l+s+sd}{  SECONDS\PYGZus{}IN\PYGZus{}PERIOD = MIN\PYGZus{}IN\PYGZus{}PERIOD * 60}
+\PYG{l+s+sd}{  SECONDS\PYGZus{}IN\PYGZus{}GAME = MIN\PYGZus{}IN\PYGZus{}GAME * 60}
+
+
+\PYG{l+s+sd}{  \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+  \PYG{n}{LOGISTIC} \PYG{n}{MODEL}\PYG{p}{:}
+
+  \PYG{o}{\PYGZhy{}} \PYG{n}{Dependent}\PYG{p}{:} \PYG{n}{shot\PYGZus{}made}\PYG{p}{:} \PYG{n+nb}{bool}
+
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{  \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+  \PYG{n}{LDA} \PYG{n}{MODEL}\PYG{p}{:}
+
+  \PYG{o}{\PYGZhy{}} \PYG{n}{Dependent}\PYG{p}{:} \PYG{n}{shot\PYGZus{}made}\PYG{p}{:} \PYG{n+nb}{bool}
+
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+
+
+\PYG{l+s+sd}{  \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+  \PYG{n}{EDA}\PYG{p}{:}
+
+  \PYG{o}{\PYGZhy{}} \PYG{n}{Potential} \PYG{n}{Mulicolinearity}\PYG{p}{:}
+      \PYG{o}{\PYGZhy{}} \PYG{n}{Court} \PYG{n}{Position}\PYG{p}{:} \PYG{n}{lat}\PYG{o}{/}\PYG{n}{log}
+                      \PYG{n}{x}\PYG{o}{/}\PYG{n}{y}
+                      \PYG{n}{shot\PYGZus{}zone\PYGZus{}area} \PYG{p}{(}\PYG{n}{cat}\PYG{p}{)}
+                      \PYG{n}{shot\PYGZus{}zone\PYGZus{}basic} \PYG{p}{(}\PYG{n}{cat}\PYG{p}{)}
+                      \PYG{n}{shot\PYGZus{}zone\PYGZus{}range} \PYG{p}{(}\PYG{n}{cat}\PYG{p}{)}
+
+      \PYG{o}{\PYGZhy{}} \PYG{p}{(}\PYG{n}{maybe}\PYG{p}{)} \PYG{n}{game\PYGZus{}date}\PYG{p}{:}
+
+
+  \PYG{o}{\PYGZhy{}} \PYG{n}{Add} \PYG{n}{Features}\PYG{p}{:}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{game\PYGZus{}count}\PYG{p}{:} \PYG{n}{cumulative} \PYG{n}{number} \PYG{n}{of} \PYG{n}{games}
+          \PYG{o}{\PYGZhy{}} \PYG{l+s+s2}{\PYGZdq{}distance\PYGZdq{}} \PYG{n}{between} \PYG{n}{games} \PYG{o+ow}{is} \PYG{n}{more} \PYG{o+ow}{or} \PYG{n}{less} \PYG{n}{equivalent} \PYG{p}{(}\PYG{k}{except} \PYG{n}{between} \PYG{n}{seasons}\PYG{p}{),} \PYG{n}{so} \PYG{n}{representation} \PYG{k}{as} \PYG{n}{an} \PYG{n}{ordinal} \PYG{n}{continuous} \PYG{n}{value} \PYG{o+ow}{is} \PYG{n}{appropriate}\PYG{o}{.} \PYG{n}{The} \PYG{n}{effects} \PYG{n}{of} \PYG{n}{season} \PYG{n}{changes} \PYG{n}{will} \PYG{n}{still} \PYG{n}{be} \PYG{n}{captures} \PYG{n}{by} \PYG{n}{season\PYGZus{}count}\PYG{o}{.}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{home\PYGZus{}or\PYGZus{}away}\PYG{p}{:} \PYG{n}{home} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}vs.\PYGZdq{}}\PYG{p}{)} \PYG{o+ow}{or} \PYG{n}{away} \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}@\PYGZdq{}}\PYG{p}{)}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{seconds\PYGZus{}left\PYGZus{}in\PYGZus{}game}\PYG{p}{:} \PYG{n+nb}{apply} \PYG{n}{function}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{seconds\PYGZus{}left\PYGZus{}in\PYGZus{}period}\PYG{p}{:} \PYG{n}{min\PYGZus{}remaining} \PYG{o}{*} \PYG{l+m+mi}{60} \PYG{o}{+} \PYG{n}{seconds\PYGZus{}remaining}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{season\PYGZus{}count}\PYG{p}{:} \PYG{n}{cumulative} \PYG{n}{number} \PYG{n}{of} \PYG{n}{seasons}
+          \PYG{o}{\PYGZhy{}} \PYG{l+s+s2}{\PYGZdq{}distance\PYGZdq{}} \PYG{n}{between} \PYG{n}{seasons} \PYG{o+ow}{is} \PYG{n}{more} \PYG{o+ow}{or} \PYG{n}{less} \PYG{n}{equivalent}\PYG{p}{,} \PYG{n}{so} \PYG{n}{representation} \PYG{k}{as} \PYG{n}{an} \PYG{n}{ordinal} \PYG{n}{continuous} \PYG{n}{value} \PYG{o+ow}{is} \PYG{n}{appropriate}\PYG{o}{.}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{num\PYGZus{}shots\PYGZus{}cumulative}\PYG{p}{:} \PYG{n}{running} \PYG{n}{total} \PYG{n}{of} \PYG{n}{number} \PYG{n}{of} \PYG{n}{shots} \PYG{n}{up} \PYG{n}{to} \PYG{n}{the} \PYG{n}{current} \PYG{n}{point} \PYG{o+ow}{in} \PYG{n}{the} \PYG{n}{game}
+
+      \PYG{o}{\PYGZhy{}} \PYG{p}{(}\PYG{n}{NotYetImplemented}\PYG{p}{)} \PYG{n}{shot\PYGZus{}difficulty}
+
+  \PYG{n}{Stretch} \PYG{n}{Features}\PYG{p}{:}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{altitude}\PYG{p}{:} \PYG{n}{obtain} \PYG{k+kn}{from} \PYG{n+nn}{lat}\PYG{o}{/}\PYG{n+nb}{long}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{central\PYGZus{}angle\PYGZus{}to\PYGZus{}basket}\PYG{p}{:} \PYG{n}{instead} \PYG{n}{of} \PYG{n}{x}\PYG{o}{/}\PYG{n}{y}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{vector\PYGZus{}length\PYGZus{}to\PYGZus{}basket}\PYG{p}{:} \PYG{n}{instead} \PYG{n}{of} \PYG{n}{x}\PYG{o}{/}\PYG{n}{y}
+
+  \PYG{n}{Drop} \PYG{n}{Features}\PYG{p}{:}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{team\PYGZus{}id}\PYG{p}{:} \PYG{n}{constant}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{team\PYGZus{}name}\PYG{p}{:} \PYG{n}{constant}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{season}\PYG{p}{:} \PYG{n}{replace} \PYG{k}{with} \PYG{n}{season\PYGZus{}count}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{game\PYGZus{}id}\PYG{p}{:} \PYG{n}{replace} \PYG{k}{with} \PYG{n}{game\PYGZus{}count}
+
+      \PYG{o}{\PYGZhy{}} \PYG{n}{matchup}\PYG{p}{:} \PYG{n}{redundant} \PYG{k}{with} \PYG{n}{opponent}
+
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+
+
+
+\PYG{l+s+sd}{  def desc(df: pd.DataFrame):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Produces} \PYG{n}{a} \PYG{n}{summary} \PYG{n}{of} \PYG{n}{the} \PYG{n+nb}{input} \PYG{n}{DataFrame}
+
+      \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{df} \PYG{p}{\PYGZob{}}\PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{p}{[}\PYG{n}{description}\PYG{p}{]}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{DataFrame} \PYG{n}{of} \PYG{n}{summary} \PYG{n}{statistics}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      desc = df.describe().T}
+\PYG{l+s+sd}{      desc[\PYGZsq{}missing\PYGZsq{}] = len(df.index) \PYGZhy{} desc[\PYGZsq{}count\PYGZsq{}]}
+\PYG{l+s+sd}{      \PYGZsh{} desc = desc.astype(\PYGZsq{}int\PYGZsq{})}
+\PYG{l+s+sd}{      desc[\PYGZsq{}median\PYGZsq{}] = df.median()}
+\PYG{l+s+sd}{      desc[\PYGZsq{}missing \PYGZpc{}\PYGZsq{}] = desc.missing / len(df.index) * 100}
+\PYG{l+s+sd}{      return desc.T}
+
+\PYG{l+s+sd}{  def vif(df: pd.DataFrame, dependent: str) \PYGZhy{}\PYGZgt{} pd.DataFrame:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Get} \PYG{n}{Variance} \PYG{n}{Inflation} \PYG{n}{Factor} \PYG{k}{for} \PYG{n}{each} \PYG{n}{feature} \PYG{o+ow}{in} \PYG{n}{df} \PYG{n}{via} \PYG{n}{a} \PYG{n}{simple}\PYG{p}{,} \PYG{n}{multiple} \PYG{n}{regression}\PYG{o}{.}
+
+      \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{df} \PYG{p}{\PYGZob{}}\PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{dataset}
+          \PYG{n}{dependent} \PYG{p}{\PYGZob{}}\PYG{n+nb}{str}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{column} \PYG{n}{name} \PYG{n}{of} \PYG{n}{dependent} \PYG{n}{feature} \PYG{o+ow}{in} \PYG{n}{df}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{DataFrame} \PYG{n}{containing} \PYG{n}{feature} \PYG{n}{names} \PYG{o+ow}{and} \PYG{n}{VIF} \PYG{n}{measures}\PYG{o}{.}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      \PYGZsh{} https://etav.github.io/python/vif\PYGZus{}factor\PYGZus{}python.html}
+\PYG{l+s+sd}{      df = df.dropna()}
+\PYG{l+s+sd}{      df = df.\PYGZus{}get\PYGZus{}numeric\PYGZus{}data() \PYGZsh{}drop non\PYGZhy{}numeric cols}
+
+\PYG{l+s+sd}{      \PYGZsh{}gather features}
+\PYG{l+s+sd}{      features = \PYGZdq{}+\PYGZdq{}.join(df.columns.drop(dependent).tolist())}
+
+\PYG{l+s+sd}{      \PYGZsh{} get y and X dataframes based on this regression:}
+\PYG{l+s+sd}{      y, X = dmatrices(\PYGZsq{}\PYGZob{}\PYGZcb{} \PYGZti{}\PYGZsq{}.format(dependent) + features, df, return\PYGZus{}type=\PYGZsq{}dataframe\PYGZsq{})}
+
+\PYG{l+s+sd}{      \PYGZsh{} For each X, calculate VIF and save in dataframe}
+\PYG{l+s+sd}{      vif = pd.DataFrame()}
+\PYG{l+s+sd}{      vif[\PYGZdq{}VIF Factor\PYGZdq{}] = [variance\PYGZus{}inflation\PYGZus{}factor(X.values, i) for i in range(X.shape[1])]}
+\PYG{l+s+sd}{      vif[\PYGZdq{}features\PYGZdq{}] = X.columns}
+
+\PYG{l+s+sd}{      return vif.round(1)}
+
+\PYG{l+s+sd}{  def angle(a: float, b: float, c: float) \PYGZhy{}\PYGZgt{} float:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}} \PYG{n}{Calculate} \PYG{n}{central} \PYG{n}{angle} \PYG{k}{for} \PYG{n}{three} \PYG{n}{known} \PYG{n}{side} \PYG{n}{lengths} \PYG{n}{using} \PYG{n}{Law} \PYG{n}{of} \PYG{n}{Cosines}
+      \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{a} \PYG{p}{\PYGZob{}}\PYG{n}{Side}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{A} \PYG{n}{side} \PYG{n}{length}
+          \PYG{n}{b} \PYG{p}{\PYGZob{}}\PYG{n}{Side}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{B} \PYG{n}{side} \PYG{n}{length}
+          \PYG{n}{c} \PYG{p}{\PYGZob{}}\PYG{n}{Side}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{C} \PYG{n}{side} \PYG{n}{length}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{Angle} \PYG{p}{\PYGZob{}}\PYG{n+nb}{float}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{central} \PYG{n}{angle} \PYG{n}{of} \PYG{n}{A} \PYG{o+ow}{in} \PYG{n}{degrees}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      return degrees(acos((c**2 \PYGZhy{} b**2 \PYGZhy{} a**2)/(\PYGZhy{}2.0 * a * b)))}
+
+\PYG{l+s+sd}{  def central\PYGZus{}angle(x: float, y:float) \PYGZhy{}\PYGZgt{} float:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Calculate} \PYG{n}{central} \PYG{n}{angle} \PYG{n}{of} \PYG{n}{shot} \PYG{n}{using} \PYG{n}{NBA} \PYG{n}{court} \PYG{n}{grid} \PYG{n}{coordinates}\PYG{o}{.}
+
+      \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{x} \PYG{p}{\PYGZob{}}\PYG{n+nb}{float}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{X} \PYG{n}{coordinate} \PYG{n}{of} \PYG{n}{shot}
+          \PYG{n}{y} \PYG{p}{\PYGZob{}}\PYG{n+nb}{float}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{Y} \PYG{n}{coordinate} \PYG{n}{of} \PYG{n}{shot}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n+nb}{float} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{angle} \PYG{o+ow}{in} \PYG{n}{degrees} \PYG{n}{of} \PYG{n}{shot}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      \PYGZsh{} Hack}
+\PYG{l+s+sd}{      if (y == 0) \PYGZam{} (x \PYGZlt{} 0):}
+\PYG{l+s+sd}{          return \PYGZhy{}90}
+
+\PYG{l+s+sd}{      if (y == 0) \PYGZam{} (x \PYGZgt{} 0):}
+\PYG{l+s+sd}{          return 90}
+
+\PYG{l+s+sd}{      if (y == 0) \PYGZam{} (x == 0):}
+\PYG{l+s+sd}{          return 0}
+
+\PYG{l+s+sd}{      \PYGZsh{} Vertices}
+\PYG{l+s+sd}{      vc\PYGZus{}a = (x, y) \PYGZsh{} shot loation}
+\PYG{l+s+sd}{      vc\PYGZus{}b = (0,0) \PYGZsh{} origin}
+\PYG{l+s+sd}{      vc\PYGZus{}c = (0, y) \PYGZsh{} reference point (0, y)}
+
+\PYG{l+s+sd}{      side\PYGZus{}a = distance.euclidean(vc\PYGZus{}b, vc\PYGZus{}c)}
+\PYG{l+s+sd}{      side\PYGZus{}b = distance.euclidean(vc\PYGZus{}a, vc\PYGZus{}c)}
+\PYG{l+s+sd}{      side\PYGZus{}c = distance.euclidean(vc\PYGZus{}a, vc\PYGZus{}b)}
+
+\PYG{l+s+sd}{      \PYGZsh{} A = angle(side\PYGZus{}a, side\PYGZus{}b, side\PYGZus{}c)}
+\PYG{l+s+sd}{      \PYGZsh{} C = angle(side\PYGZus{}c, side\PYGZus{}a, side\PYGZus{}b)}
+\PYG{l+s+sd}{      B = angle(side\PYGZus{}b, side\PYGZus{}c, side\PYGZus{}a)}
+
+\PYG{l+s+sd}{      return B if x \PYGZgt{} 0 else \PYGZhy{}B}
+
+\PYG{l+s+sd}{  def wrangle\PYGZus{}features(data: pd.DataFrame) \PYGZhy{}\PYGZgt{} pd.DataFrame:}
+\PYG{l+s+sd}{      feats = pd.Series(}
+\PYG{l+s+sd}{                  data = False,}
+\PYG{l+s+sd}{                  index = [\PYGZsq{}recId\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}action\PYGZus{}type\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}combined\PYGZus{}shot\PYGZus{}type\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}game\PYGZus{}event\PYGZus{}id\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}game\PYGZus{}id\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}lat\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}loc\PYGZus{}x\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}loc\PYGZus{}y\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}lon\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}minutes\PYGZus{}remaining\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}period\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}playoffs\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}season\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}seconds\PYGZus{}remaining\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}shot\PYGZus{}distance\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}shot\PYGZus{}made\PYGZus{}flag\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}shot\PYGZus{}type\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}shot\PYGZus{}zone\PYGZus{}area\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}shot\PYGZus{}zone\PYGZus{}basic\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}shot\PYGZus{}zone\PYGZus{}range\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}team\PYGZus{}id\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}team\PYGZus{}name\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}game\PYGZus{}date\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}matchup\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}opponent\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}shot\PYGZus{}id\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}attendance\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}arena\PYGZus{}temp\PYGZsq{},}
+\PYG{l+s+sd}{                          \PYGZsq{}avgnoisedb\PYGZsq{}],}
+\PYG{l+s+sd}{                  dtype = bool}
+\PYG{l+s+sd}{                  )}
+
+\PYG{l+s+sd}{      \PYGZsh{} Flag features that were passed to the function}
+\PYG{l+s+sd}{      feats.loc[feats.index.isin(data.columns)] = True}
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if feats.minutes\PYGZus{}remaining \PYGZam{} feats.seconds\PYGZus{}remaining:}
+\PYG{l+s+sd}{              data[\PYGZsq{}seconds\PYGZus{}left\PYGZus{}in\PYGZus{}period\PYGZsq{}] = data.minutes\PYGZus{}remaining * 60 + data.seconds\PYGZus{}remaining}
+\PYG{l+s+sd}{      except Exception as e:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: seconds\PYGZus{}left\PYGZus{}in\PYGZus{}period. (\PYGZob{}\PYGZcb{})\PYGZsq{}.format(e))}
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{              data[\PYGZsq{}last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period\PYGZsq{}] = data.seconds\PYGZus{}left\PYGZus{}in\PYGZus{}period \PYGZlt{} 2}
+\PYG{l+s+sd}{              data.last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period = data.last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period.astype(int)}
+\PYG{l+s+sd}{      except Exception as e:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: last\PYGZus{}seconds\PYGZus{}of\PYGZus{}period. (\PYGZob{}\PYGZcb{})\PYGZsq{}.format(e))}
+
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if feats.period:}
+\PYG{l+s+sd}{              data[\PYGZsq{}seconds\PYGZus{}elapsed\PYGZus{}in\PYGZus{}game\PYGZsq{}] = SECONDS\PYGZus{}IN\PYGZus{}PERIOD * data.period \PYGZhy{} data.seconds\PYGZus{}left\PYGZus{}in\PYGZus{}period}
+\PYG{l+s+sd}{      except:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: seconds\PYGZus{}elapsed\PYGZus{}in\PYGZus{}game\PYGZsq{})}
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if True:}
+\PYG{l+s+sd}{              data[\PYGZsq{}seconds\PYGZus{}left\PYGZus{}in\PYGZus{}game\PYGZsq{}] = SECONDS\PYGZus{}IN\PYGZus{}GAME \PYGZhy{} data.seconds\PYGZus{}elapsed\PYGZus{}in\PYGZus{}game}
+\PYG{l+s+sd}{      except:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: seconds\PYGZus{}left\PYGZus{}in\PYGZus{}game\PYGZsq{})}
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if feats.matchup:}
+\PYG{l+s+sd}{              data[\PYGZsq{}home\PYGZus{}or\PYGZus{}away\PYGZsq{}] = data.matchup.str.contains(\PYGZdq{}@\PYGZdq{}).astype(int)}
+\PYG{l+s+sd}{      except:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: home\PYGZus{}or\PYGZus{}away\PYGZsq{})}
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if feats.game\PYGZus{}id:}
+\PYG{l+s+sd}{              data[\PYGZsq{}num\PYGZus{}shots\PYGZus{}cumulative\PYGZsq{}] = data.groupby([\PYGZsq{}game\PYGZus{}id\PYGZsq{}]).cumcount()}
+\PYG{l+s+sd}{      except:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: num\PYGZus{}shots\PYGZus{}cumulative\PYGZsq{})}
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if feats.loc\PYGZus{}x \PYGZam{} feats.loc\PYGZus{}y:}
+\PYG{l+s+sd}{              data[\PYGZsq{}angle\PYGZus{}from\PYGZus{}basket\PYGZsq{}] = data.apply(lambda row: central\PYGZus{}angle(row.loc\PYGZus{}x, row.loc\PYGZus{}y), axis = 1)}
+\PYG{l+s+sd}{      except:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: angle\PYGZus{}from\PYGZus{}basket\PYGZsq{})}
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if feats.season:}
+\PYG{l+s+sd}{              \PYGZsh{} Convert season to ordered Categorical (Factor) type}
+\PYG{l+s+sd}{              data.season = pd.Categorical(data.season, data.season.sort\PYGZus{}values().unique().tolist(), ordered = True)}
+\PYG{l+s+sd}{              data[\PYGZsq{}season\PYGZus{}count\PYGZsq{}] = data.season.cat.codes}
+\PYG{l+s+sd}{      except:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to add feature: season\PYGZus{}count\PYGZsq{})}
+
+\PYG{l+s+sd}{      try:}
+\PYG{l+s+sd}{          if len(data.select\PYGZus{}dtypes(\PYGZsq{}object\PYGZsq{}).columns):}
+\PYG{l+s+sd}{              \PYGZsh{} Convert other string fields to unordered Categorical}
+\PYG{l+s+sd}{              data[data.select\PYGZus{}dtypes(\PYGZsq{}object\PYGZsq{}).columns.tolist()] = data.select\PYGZus{}dtypes(\PYGZsq{}object\PYGZsq{}).astype(\PYGZsq{}category\PYGZsq{})}
+\PYG{l+s+sd}{      except:}
+\PYG{l+s+sd}{          print(\PYGZsq{}Failed to convert objects to categories\PYGZsq{})}
+
+\PYG{l+s+sd}{      return data}
+
+\PYG{l+s+sd}{  def drop\PYGZus{}features(data, columns):}
+
+\PYG{l+s+sd}{      \PYGZsh{} Remove columns in the \PYGZsq{}remove\PYGZsq{} list if they are present in the dataset}
+\PYG{l+s+sd}{      data = data.drop(columns = [x for x in columns if x in data.columns])}
+\PYG{l+s+sd}{      return data}
+
+\PYG{l+s+sd}{  def eigen\PYGZus{}solver():}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Assess} \PYG{n}{using} \PYG{n}{Eigen} \PYG{n}{values} \PYG{o+ow}{and} \PYG{n}{vectors}
+
+      \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{stackoverflow}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{questions}\PYG{o}{/}\PYG{l+m+mi}{25676145}\PYG{o}{/}\PYG{n}{capturing}\PYG{o}{\PYGZhy{}}\PYG{n}{high}\PYG{o}{\PYGZhy{}}\PYG{n}{multi}\PYG{o}{\PYGZhy{}}\PYG{n}{collinearity}\PYG{o}{\PYGZhy{}}\PYG{o+ow}{in}\PYG{o}{\PYGZhy{}}\PYG{n}{statsmodels}
+
+      \PYG{n}{An} \PYG{n}{almost} \PYG{n}{zero} \PYG{n}{eigen} \PYG{n}{value} \PYG{n}{shows} \PYG{n}{a} \PYG{n}{direction} \PYG{k}{with} \PYG{n}{zero} \PYG{n}{variation}\PYG{p}{,} \PYG{n}{hence} \PYG{n}{collinearity}\PYG{o}{.}
+
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      \PYGZsh{} TODO: Implement, time permitting}
+\PYG{l+s+sd}{      raise NotImplementedError()}
+
+\PYG{l+s+sd}{  def check\PYGZus{}collinearity(data: pd.DataFrame):}
+\PYG{l+s+sd}{      return vif(data, DEPENDENT) \PYGZbs{}}
+\PYG{l+s+sd}{                  .set\PYGZus{}index(\PYGZsq{}features\PYGZsq{}) \PYGZbs{}}
+\PYG{l+s+sd}{                  .rename(columns = \PYGZob{}\PYGZsq{}VIF Factor\PYGZsq{} : \PYGZsq{}VIF\PYGZsq{}\PYGZcb{}) \PYGZbs{}}
+\PYG{l+s+sd}{                  .sort\PYGZus{}values(by = \PYGZsq{}VIF\PYGZsq{}, ascending = False) \PYGZbs{}}
+\PYG{l+s+sd}{                  .drop(\PYGZsq{}Intercept\PYGZsq{})}
+
+\PYG{l+s+sd}{  def check\PYGZus{}collinearity\PYGZus{}recursive(data: pd.DataFrame, vifs = None):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Recursively} \PYG{n}{check} \PYG{n}{the} \PYG{n}{multicollinearity} \PYG{p}{(}\PYG{n}{MC}\PYG{p}{)} \PYG{n}{associated} \PYG{k}{with} \PYG{n}{each} \PYG{n}{feature}\PYG{o}{.}  \PYG{n}{Each} \PYG{n}{iteration}\PYG{p}{,} \PYG{n}{the} \PYG{n}{feature} \PYG{k}{with} \PYG{n}{the} \PYG{n}{largest} \PYG{n}{MC} \PYG{o+ow}{is} \PYG{n}{dropped} \PYG{k}{if} \PYG{n}{the} \PYG{n}{MC} \PYG{o+ow}{is} \PYG{n}{infinite} \PYG{o+ow}{or} \PYG{k}{if} \PYG{n}{MC} \PYG{o}{\PYGZgt{}} \PYG{n}{x}\PYG{p}{,} \PYG{n}{where} \PYG{n}{x} \PYG{o+ow}{is} \PYG{n}{the} \PYG{n}{standard} \PYG{n}{deviation} \PYG{n}{of} \PYG{n}{the} \PYG{n}{finite} \PYG{n}{VIFs} \PYG{n}{of} \PYG{n}{the} \PYG{n}{original} \PYG{n}{features}\PYG{o}{.} \PYG{n}{A} \PYG{n}{matrix} \PYG{n}{containing} \PYG{n}{VIFs} \PYG{k}{for} \PYG{n}{each} \PYG{n}{iteration} \PYG{o+ow}{is} \PYG{n}{returned} \PYG{n}{once} \PYG{n}{an} \PYG{n}{iteration} \PYG{o+ow}{is} \PYG{n}{reached} \PYG{n}{where} \PYG{n}{MC} \PYG{o}{\PYGZlt{}=} \PYG{n}{x}\PYG{o}{.}
+
+      \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{data} \PYG{p}{\PYGZob{}}\PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{Matrix} \PYG{o+ow}{or} \PYG{n}{DataFrame} \PYG{k}{with} \PYG{n}{shape}\PYG{p}{(}\PYG{n}{n\PYGZus{}obs}\PYG{p}{,} \PYG{n}{n\PYGZus{}features}\PYG{p}{)}
+
+      \PYG{n}{Keyword} \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{vifs} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{None}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{Recursive} \PYG{n}{control} \PYG{n}{parameter} \PYG{p}{(}\PYG{n}{default}\PYG{p}{:} \PYG{p}{\PYGZob{}}\PYG{n+nb+bp}{None}\PYG{p}{\PYGZcb{})}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{p}{[}\PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{]} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{Matrix} \PYG{n}{of} \PYG{n}{VIFs} \PYG{n}{per} \PYG{n}{iteration}\PYG{o}{.} \PYG{n}{Nan} \PYG{p}{(}\PYG{o+ow}{not} \PYG{n}{a} \PYG{n}{number}\PYG{p}{)} \PYG{n}{values} \PYG{n}{represent} \PYG{n}{features} \PYG{n}{dropped} \PYG{k+kn}{from} \PYG{n+nn}{the} \PYG{n+nn}{assessment} \PYG{n+nn}{in} \PYG{n+nn}{either} \PYG{n+nn}{a} \PYG{n+nn}{previous} \PYG{n+nn}{or} \PYG{n+nn}{the} \PYG{n+nn}{current} \PYG{n+nn}{iteration.}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      prev\PYGZus{}vifs = vifs}
+
+\PYG{l+s+sd}{      vifs = vif(data, DEPENDENT) \PYGZbs{}}
+\PYG{l+s+sd}{                  .set\PYGZus{}index(\PYGZsq{}features\PYGZsq{}) \PYGZbs{}}
+\PYG{l+s+sd}{                  .rename(columns = \PYGZob{}\PYGZsq{}VIF Factor\PYGZsq{} : \PYGZsq{}VIF\PYGZsq{}\PYGZcb{}) \PYGZbs{}}
+\PYG{l+s+sd}{                  .sort\PYGZus{}values(by = \PYGZsq{}VIF\PYGZsq{}, ascending = False) \PYGZbs{}}
+\PYG{l+s+sd}{                  .drop(\PYGZsq{}Intercept\PYGZsq{}) \PYGZsh{} Drop intercept term}
+
+
+\PYG{l+s+sd}{      vif0\PYGZus{}name, vif0\PYGZus{}val = vifs.iloc[0].name, vifs.iloc[0].values[0]}
+
+\PYG{l+s+sd}{      drop\PYGZus{}feature = False}
+\PYG{l+s+sd}{      limit = None}
+\PYG{l+s+sd}{      thresh = prev\PYGZus{}vifs.VIF[np.isfinite(prev\PYGZus{}vifs.VIF)].max() if prev\PYGZus{}vifs is not None else 0}
+\PYG{l+s+sd}{      \PYGZsh{} If inflated feature VIF is infinite, drop the feature}
+\PYG{l+s+sd}{      if vif0\PYGZus{}val == float(\PYGZsq{}inf\PYGZsq{}):}
+\PYG{l+s+sd}{          drop\PYGZus{}feature = True}
+\PYG{l+s+sd}{      else:}
+\PYG{l+s+sd}{          \PYGZsh{} Otherwise, drop feature if VIF within 2.5 stds.}
+\PYG{l+s+sd}{          limit = (vifs[vifs != float(\PYGZsq{}inf\PYGZsq{})].std()*2.5).values[0]}
+\PYG{l+s+sd}{          if vif0\PYGZus{}val \PYGZgt{} limit \PYGZgt{} thresh:}
+\PYG{l+s+sd}{              drop\PYGZus{}feature = True}
+
+\PYG{l+s+sd}{      if prev\PYGZus{}vifs is not None:}
+\PYG{l+s+sd}{          \PYGZsh{} print(\PYGZsq{}\PYGZbs{}n\PYGZbs{}nprev\PYGZus{}vifs\PYGZsq{})}
+\PYG{l+s+sd}{          \PYGZsh{} print(prev\PYGZus{}vifs)}
+\PYG{l+s+sd}{          vifs = prev\PYGZus{}vifs.join(vifs, rsuffix = \PYGZsq{}\PYGZus{}\PYGZsq{}+str(len(vifs)))}
+
+
+
+\PYG{l+s+sd}{      print(f\PYGZsq{}VIF: Dropping: \PYGZob{}vif0\PYGZus{}name\PYGZcb{} | limit: \PYGZob{}limit or 0:.2f\PYGZcb{} | thresh: \PYGZob{}thresh or 0:.2f\PYGZcb{}\PYGZsq{})}
+
+\PYG{l+s+sd}{      if drop\PYGZus{}feature:}
+\PYG{l+s+sd}{          return check\PYGZus{}collinearity\PYGZus{}recursive(}
+\PYG{l+s+sd}{                  data.drop(columns = [vif0\PYGZus{}name]),}
+\PYG{l+s+sd}{                  vifs = vifs}
+\PYG{l+s+sd}{                  )}
+
+\PYG{l+s+sd}{      print(\PYGZsq{}\PYGZbs{}n\PYGZbs{}nvifs\PYGZsq{})}
+\PYG{l+s+sd}{      print(vifs)}
+
+\PYG{l+s+sd}{      return vifs}
+
+\PYG{l+s+sd}{  def fix\PYGZus{}mulitcollinearity(data: pd.DataFrame):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Remove} \PYG{n}{multicollinear} \PYG{n}{variables} \PYG{n}{by} \PYG{n}{assessing} \PYG{n}{variance} \PYG{n}{inflation} \PYG{n}{factors}\PYG{o}{.}
+
+      \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{data} \PYG{p}{\PYGZob{}}\PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{p}{(}\PYG{n}{n\PYGZus{}obs}\PYG{p}{,} \PYG{n}{n\PYGZus{}features}\PYG{p}{)}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{data}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      print(\PYGZsq{}\PYGZbs{}n\PYGZbs{}n\PYGZsq{})}
+\PYG{l+s+sd}{      vifs = check\PYGZus{}collinearity\PYGZus{}recursive(data)}
+\PYG{l+s+sd}{      \PYGZsh{} vifs = check\PYGZus{}collinearity(data)}
+\PYG{l+s+sd}{      vifs = vifs.iloc[:, \PYGZhy{}1] \PYGZsh{} Get last column (the last iteration)}
+
+\PYG{l+s+sd}{      \PYGZsh{} remove features with high MC from data set}
+\PYG{l+s+sd}{      data = data.drop(columns = vifs[vifs.isna()].index)}
+\PYG{l+s+sd}{      return data}
+
+\PYG{l+s+sd}{  def prepare\PYGZus{}data(data: pd.DataFrame, drop\PYGZus{}categorical = False, drop\PYGZus{}columns: list = None) \PYGZhy{}\PYGZgt{} pd.DataFrame:}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{n}{Template} \PYG{n}{procedue} \PYG{n}{to} \PYG{n}{ingest} \PYG{n}{new} \PYG{n}{dataset}\PYG{o}{.}
+
+      \PYG{n}{Arguments}\PYG{p}{:}
+          \PYG{n}{data} \PYG{p}{\PYGZob{}}\PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{\PYGZcb{}} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{new} \PYG{n}{dataset}
+
+      \PYG{n}{Returns}\PYG{p}{:}
+          \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame} \PYG{o}{\PYGZhy{}\PYGZhy{}} \PYG{n}{dataset} \PYG{k}{for} \PYG{n}{further} \PYG{n}{prep} \PYG{o+ow}{or} \PYG{n}{analysis}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{      data = wrangle\PYGZus{}features(data)}
+\PYG{l+s+sd}{      if drop\PYGZus{}columns is not None:}
+\PYG{l+s+sd}{          data = drop\PYGZus{}features(data, drop\PYGZus{}columns)}
+\PYG{l+s+sd}{      data = fix\PYGZus{}mulitcollinearity(data)}
+
+\PYG{l+s+sd}{      \PYGZsh{} Drop remaining categoricals}
+\PYG{l+s+sd}{      if drop\PYGZus{}categorical:}
+\PYG{l+s+sd}{          data = data.select\PYGZus{}dtypes(exclude = [\PYGZsq{}object\PYGZsq{}, \PYGZsq{}category\PYGZsq{}])}
+
+\PYG{l+s+sd}{      return data}
+
+\PYG{l+s+sd}{  def identify\PYGZus{}outliers(data):}
+\PYG{l+s+sd}{      pass}
+
+
+
+\PYG{l+s+sd}{  \PYGZsh{} action\PYGZus{}counts = DATA[\PYGZsq{}action\PYGZus{}type\PYGZsq{}].value\PYGZus{}counts().sort\PYGZus{}values(ascending = False)}
+
+\PYG{l+s+sd}{  \PYGZsh{} from scipy import stats}
+\PYG{l+s+sd}{  \PYGZsh{} d2[(np.abs(stats.zscore(d2)) \PYGZlt{} 3).any(axis=1)]}
+\PYG{l+s+sd}{  \PYGZsh{} d2[np.abs(d2\PYGZhy{}d2.mean()) \PYGZlt{}= (3*d2.std())]}
+\PYG{l+s+sd}{  \PYGZsh{} stats.trimb}
+
+\PYG{l+s+sd}{  \PYGZsh{} data = data.drop(columns = [}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}minutes\PYGZus{}remaining\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}seconds\PYGZus{}remaining\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}seconds\PYGZus{}elapsed\PYGZus{}in\PYGZus{}game\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}lat\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}lon\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}game\PYGZus{}event\PYGZus{}id\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}period\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}     \PYGZsq{}seconds\PYGZus{}left\PYGZus{}in\PYGZus{}period\PYGZsq{},]}
+\PYG{l+s+sd}{  \PYGZsh{}     )}
+
+\PYG{l+s+sd}{  \PYGZsh{} Sort features by VIF}
+
+\PYG{l+s+sd}{  \PYGZsh{} NOTE: PLOTS}
+
+\PYG{l+s+sd}{  \PYGZsh{} fig, ax = plt.subplots(figsize=(12,8))}
+\PYG{l+s+sd}{  \PYGZsh{} ax = sns.scatterplot(\PYGZsq{}loc\PYGZus{}x\PYGZsq{}, \PYGZsq{}loc\PYGZus{}y\PYGZsq{}, hue = \PYGZsq{}shot\PYGZus{}made\PYGZus{}flag\PYGZsq{}, data = data)}
+\PYG{l+s+sd}{  \PYGZsh{} ax.set\PYGZus{}title(\PYGZsq{}Shot Location\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} ax.set\PYGZus{}xlabel(\PYGZsq{}X\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} ax.set\PYGZus{}ylabel(\PYGZsq{}Y\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} ax.set\PYGZus{}ylim(0, 400)}
+\PYG{l+s+sd}{  \PYGZsh{} fig.savefig(\PYGZsq{}figs/p2\PYGZhy{}3\PYGZus{}price\PYGZhy{}v\PYGZhy{}months.png\PYGZsq{})}
+
+\PYG{l+s+sd}{  \PYGZsh{} fig, ax = plt.subplots(figsize=(12,8))}
+\PYG{l+s+sd}{  \PYGZsh{} ax = data.boxplot()}
+\PYG{l+s+sd}{  \PYGZsh{} ax.set\PYGZus{}xticklabels(data.columns, rotation=90)}
+\PYG{l+s+sd}{  \PYGZsh{} fig.tight\PYGZus{}layout()}
+
+\PYG{l+s+sd}{  \PYGZsh{} fig, ax = plt.subplots(figsize=(12,8))}
+\PYG{l+s+sd}{  \PYGZsh{} ax = data.select\PYGZus{}dtypes(include=[np.number]).hist()}
+\PYG{l+s+sd}{  \PYGZsh{} \PYGZsh{} ax.set\PYGZus{}xticklabels(data.columns, rotation=90)}
+\PYG{l+s+sd}{  \PYGZsh{} fig.tight\PYGZus{}layout()}
+
+\PYG{l+s+sd}{  \PYGZsh{} import time}
+\PYG{l+s+sd}{  \PYGZsh{} from sklearn.linear\PYGZus{}model import LassoCV}
+\PYG{l+s+sd}{  \PYGZsh{} print(\PYGZdq{}Computing regularization path using the coordinate descent lasso...\PYGZdq{})}
+\PYG{l+s+sd}{  \PYGZsh{} t1 = time.time()}
+\PYG{l+s+sd}{  \PYGZsh{} model = LassoCV(cv=5).fit(X, y)}
+\PYG{l+s+sd}{  \PYGZsh{} t\PYGZus{}lasso\PYGZus{}cv = time.time() \PYGZhy{} t1}
+
+\PYG{l+s+sd}{  \PYGZsh{} \PYGZsh{} Display results}
+\PYG{l+s+sd}{  \PYGZsh{} m\PYGZus{}log\PYGZus{}alphas = \PYGZhy{}np.log10(model.alphas\PYGZus{})}
+
+\PYG{l+s+sd}{  \PYGZsh{} plt.figure()}
+\PYG{l+s+sd}{  \PYGZsh{} ymin, ymax = 2300, 3800}
+\PYG{l+s+sd}{  \PYGZsh{} plt.plot(m\PYGZus{}log\PYGZus{}alphas, model.mse\PYGZus{}path\PYGZus{}, \PYGZsq{}:\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} plt.plot(m\PYGZus{}log\PYGZus{}alphas, model.mse\PYGZus{}path\PYGZus{}.mean(axis=\PYGZhy{}1), \PYGZsq{}k\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}          label=\PYGZsq{}Average across the folds\PYGZsq{}, linewidth=2)}
+\PYG{l+s+sd}{  \PYGZsh{} plt.axvline(\PYGZhy{}np.log10(model.alpha\PYGZus{}), linestyle=\PYGZsq{}\PYGZhy{}\PYGZhy{}\PYGZsq{}, color=\PYGZsq{}k\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{}             label=\PYGZsq{}alpha: CV estimate\PYGZsq{})}
+
+\PYG{l+s+sd}{  \PYGZsh{} plt.legend()}
+
+\PYG{l+s+sd}{  \PYGZsh{} plt.xlabel(\PYGZsq{}\PYGZhy{}log(alpha)\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} plt.ylabel(\PYGZsq{}Mean square error\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} plt.title(\PYGZsq{}Mean square error on each fold: coordinate descent \PYGZsq{}}
+\PYG{l+s+sd}{  \PYGZsh{}           \PYGZsq{}(train time: \PYGZpc{}.2fs)\PYGZsq{} \PYGZpc{} t\PYGZus{}lasso\PYGZus{}cv)}
+\PYG{l+s+sd}{  \PYGZsh{} plt.axis(\PYGZsq{}tight\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} plt.ylim(ymin, ymax)}
+
+
+\PYG{l+s+sd}{  \PYGZsh{} def correct\PYGZus{}multicollinearity(data: pd.DataFrame) \PYGZhy{}\PYGZgt{} pd.DataFrame:}
+\PYG{l+s+sd}{  \PYGZsh{} 	print(\PYGZsq{}Anterior VIF\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} 	print(vif(data, DEPENDENT))}
+
+\PYG{l+s+sd}{  \PYGZsh{} 	\PYGZsh{} Drop multicolinear features}
+\PYG{l+s+sd}{  \PYGZsh{} 	data = data.drop(columns = [}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}minutes\PYGZus{}remaining\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}seconds\PYGZus{}remaining\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}seconds\PYGZus{}elapsed\PYGZus{}in\PYGZus{}game\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}lat\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}lon\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}game\PYGZus{}event\PYGZus{}id\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}period\PYGZsq{},}
+\PYG{l+s+sd}{  \PYGZsh{} 		\PYGZsq{}seconds\PYGZus{}left\PYGZus{}in\PYGZus{}period\PYGZsq{},}
+
+\PYG{l+s+sd}{  \PYGZsh{} 	])}
+
+\PYG{l+s+sd}{  \PYGZsh{} 	print(\PYGZsq{}Posterior VIF\PYGZsq{})}
+\PYG{l+s+sd}{  \PYGZsh{} 	v = vif(data, DEPENDENT)}
+\PYG{l+s+sd}{  \PYGZsh{} 	print(v)}
+\PYG{l+s+sd}{  \PYGZsh{} 	return data}
+
+\PYG{l+s+sd}{  \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+  \PYG{n}{plot} \PYG{n}{a} \PYG{n}{pretty} \PYG{n}{confusion} \PYG{n}{matrix} \PYG{k}{with} \PYG{n}{seaborn}
+  \PYG{n}{Created} \PYG{n}{on} \PYG{n}{Mon} \PYG{n}{Jun} \PYG{l+m+mi}{25} \PYG{l+m+mi}{14}\PYG{p}{:}\PYG{l+m+mi}{17}\PYG{p}{:}\PYG{l+m+mi}{37} \PYG{l+m+mi}{2018}
+  \PYG{n+nd}{@author}\PYG{p}{:} \PYG{n}{Wagner} \PYG{n}{Cipriano} \PYG{o}{\PYGZhy{}} \PYG{n}{wagnerbhbr} \PYG{o}{\PYGZhy{}} \PYG{n}{gmail} \PYG{o}{\PYGZhy{}} \PYG{n}{CEFETMG} \PYG{o}{/} \PYG{n}{MMC}
+  \PYG{n+nd}{@repository}\PYG{p}{:} \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{github}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{wcipriano}\PYG{o}{/}\PYG{n}{pretty}\PYG{o}{\PYGZhy{}}\PYG{k}{print}\PYG{o}{\PYGZhy{}}\PYG{n}{confusion}\PYG{o}{\PYGZhy{}}\PYG{n}{matrix}\PYG{o}{/}\PYG{n}{blob}\PYG{o}{/}\PYG{n}{master}\PYG{o}{/}\PYG{n}{confusion\PYGZus{}matrix\PYGZus{}pretty\PYGZus{}print}\PYG{o}{.}\PYG{n}{py}
+  \PYG{n}{References}\PYG{p}{:}
+    \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{www}\PYG{o}{.}\PYG{n}{mathworks}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{help}\PYG{o}{/}\PYG{n}{nnet}\PYG{o}{/}\PYG{n}{ref}\PYG{o}{/}\PYG{n}{plotconfusion}\PYG{o}{.}\PYG{n}{html}
+    \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{stackoverflow}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{questions}\PYG{o}{/}\PYG{l+m+mi}{28200786}\PYG{o}{/}\PYG{n}{how}\PYG{o}{\PYGZhy{}}\PYG{n}{to}\PYG{o}{\PYGZhy{}}\PYG{n}{plot}\PYG{o}{\PYGZhy{}}\PYG{n}{scikit}\PYG{o}{\PYGZhy{}}\PYG{n}{learn}\PYG{o}{\PYGZhy{}}\PYG{n}{classification}\PYG{o}{\PYGZhy{}}\PYG{n}{report}
+    \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{stackoverflow}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{questions}\PYG{o}{/}\PYG{l+m+mi}{5821125}\PYG{o}{/}\PYG{n}{how}\PYG{o}{\PYGZhy{}}\PYG{n}{to}\PYG{o}{\PYGZhy{}}\PYG{n}{plot}\PYG{o}{\PYGZhy{}}\PYG{n}{confusion}\PYG{o}{\PYGZhy{}}\PYG{n}{matrix}\PYG{o}{\PYGZhy{}}\PYG{k}{with}\PYG{o}{\PYGZhy{}}\PYG{n}{string}\PYG{o}{\PYGZhy{}}\PYG{n}{axis}\PYG{o}{\PYGZhy{}}\PYG{n}{rather}\PYG{o}{\PYGZhy{}}\PYG{n}{than}\PYG{o}{\PYGZhy{}}\PYG{n}{integer}\PYG{o}{\PYGZhy{}}\PYG{o+ow}{in}\PYG{o}{\PYGZhy{}}\PYG{n}{python}
+    \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{www}\PYG{o}{.}\PYG{n}{programcreek}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{python}\PYG{o}{/}\PYG{n}{example}\PYG{o}{/}\PYG{l+m+mi}{96197}\PYG{o}{/}\PYG{n}{seaborn}\PYG{o}{.}\PYG{n}{heatmap}
+    \PYG{n}{https}\PYG{p}{:}\PYG{o}{//}\PYG{n}{stackoverflow}\PYG{o}{.}\PYG{n}{com}\PYG{o}{/}\PYG{n}{questions}\PYG{o}{/}\PYG{l+m+mi}{19233771}\PYG{o}{/}\PYG{n}{sklearn}\PYG{o}{\PYGZhy{}}\PYG{n}{plot}\PYG{o}{\PYGZhy{}}\PYG{n}{confusion}\PYG{o}{\PYGZhy{}}\PYG{n}{matrix}\PYG{o}{\PYGZhy{}}\PYG{k}{with}\PYG{o}{\PYGZhy{}}\PYG{n}{labels}\PYG{o}{/}\PYG{l+m+mi}{31720054}
+    \PYG{n}{http}\PYG{p}{:}\PYG{o}{//}\PYG{n}{scikit}\PYG{o}{\PYGZhy{}}\PYG{n}{learn}\PYG{o}{.}\PYG{n}{org}\PYG{o}{/}\PYG{n}{stable}\PYG{o}{/}\PYG{n}{auto\PYGZus{}examples}\PYG{o}{/}\PYG{n}{model\PYGZus{}selection}\PYG{o}{/}\PYG{n}{plot\PYGZus{}confusion\PYGZus{}matrix}\PYG{o}{.}\PYG{n}{html}\PYG{c+c1}{\PYGZsh{}sphx\PYGZhy{}glr\PYGZhy{}auto\PYGZhy{}examples\PYGZhy{}model\PYGZhy{}selection\PYGZhy{}plot\PYGZhy{}confusion\PYGZhy{}matrix\PYGZhy{}py}
+  \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+\PYG{l+s+sd}{  \PYGZsh{}imports}
+\PYG{l+s+sd}{  from pandas import DataFrame}
+\PYG{l+s+sd}{  import numpy as np}
+\PYG{l+s+sd}{  import matplotlib.pyplot as plt}
+\PYG{l+s+sd}{  import matplotlib.font\PYGZus{}manager as fm}
+\PYG{l+s+sd}{  from matplotlib.collections import QuadMesh}
+\PYG{l+s+sd}{  import seaborn as sns}
+
+
+\PYG{l+s+sd}{  def \PYGZus{}get\PYGZus{}new\PYGZus{}fig(fn, figsize=[9,9]):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}} \PYG{n}{Init} \PYG{n}{graphics} \PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+s2}{      fig1 = plt.figure(fn, figsize)}
+\PYG{l+s+s2}{      ax1 = fig1.gca()   \PYGZsh{}Get Current Axis}
+\PYG{l+s+s2}{      ax1.cla() \PYGZsh{} clear existing plot}
+\PYG{l+s+s2}{      return fig1, ax1}
+\PYG{l+s+s2}{  \PYGZsh{}}
+
+\PYG{l+s+s2}{  def \PYGZus{}configcell\PYGZus{}text\PYGZus{}and\PYGZus{}colors(array\PYGZus{}df, lin, col, oText, facecolors, posi, fz, fmt, show\PYGZus{}null\PYGZus{}values=0):}
+\PYG{l+s+s2}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+        \PYG{n}{config} \PYG{n}{cell} \PYG{n}{text} \PYG{o+ow}{and} \PYG{n}{colors}
+        \PYG{o+ow}{and} \PYG{k}{return} \PYG{n}{text} \PYG{n}{elements} \PYG{n}{to} \PYG{n}{add} \PYG{o+ow}{and} \PYG{n}{to} \PYG{n}{dell}
+        \PYG{n+nd}{@TODO}\PYG{p}{:} \PYG{n}{use} \PYG{n}{fmt}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      text\PYGZus{}add = []; text\PYGZus{}del = [];}
+\PYG{l+s+sd}{      cell\PYGZus{}val = array\PYGZus{}df[lin][col]}
+\PYG{l+s+sd}{      tot\PYGZus{}all = array\PYGZus{}df[\PYGZhy{}1][\PYGZhy{}1]}
+\PYG{l+s+sd}{      per = (float(cell\PYGZus{}val) / tot\PYGZus{}all) * 100}
+\PYG{l+s+sd}{      curr\PYGZus{}column = array\PYGZus{}df[:,col]}
+\PYG{l+s+sd}{      ccl = len(curr\PYGZus{}column)}
+
+\PYG{l+s+sd}{      \PYGZsh{}last line  and/or last column}
+\PYG{l+s+sd}{      if(col == (ccl \PYGZhy{} 1)) or (lin == (ccl \PYGZhy{} 1)):}
+\PYG{l+s+sd}{          \PYGZsh{}tots and percents}
+\PYG{l+s+sd}{          if(cell\PYGZus{}val != 0):}
+\PYG{l+s+sd}{              if(col == ccl \PYGZhy{} 1) and (lin == ccl \PYGZhy{} 1):}
+\PYG{l+s+sd}{                  tot\PYGZus{}rig = 0}
+\PYG{l+s+sd}{                  for i in range(array\PYGZus{}df.shape[0] \PYGZhy{} 1):}
+\PYG{l+s+sd}{                      tot\PYGZus{}rig += array\PYGZus{}df[i][i]}
+\PYG{l+s+sd}{                  per\PYGZus{}ok = (float(tot\PYGZus{}rig) / cell\PYGZus{}val) * 100}
+\PYG{l+s+sd}{              elif(col == ccl \PYGZhy{} 1):}
+\PYG{l+s+sd}{                  tot\PYGZus{}rig = array\PYGZus{}df[lin][lin]}
+\PYG{l+s+sd}{                  per\PYGZus{}ok = (float(tot\PYGZus{}rig) / cell\PYGZus{}val) * 100}
+\PYG{l+s+sd}{              elif(lin == ccl \PYGZhy{} 1):}
+\PYG{l+s+sd}{                  tot\PYGZus{}rig = array\PYGZus{}df[col][col]}
+\PYG{l+s+sd}{                  per\PYGZus{}ok = (float(tot\PYGZus{}rig) / cell\PYGZus{}val) * 100}
+\PYG{l+s+sd}{              per\PYGZus{}err = 100 \PYGZhy{} per\PYGZus{}ok}
+\PYG{l+s+sd}{          else:}
+\PYG{l+s+sd}{              per\PYGZus{}ok = per\PYGZus{}err = 0}
+
+\PYG{l+s+sd}{          per\PYGZus{}ok\PYGZus{}s = [\PYGZsq{}\PYGZpc{}.2f\PYGZpc{}\PYGZpc{}\PYGZsq{}\PYGZpc{}(per\PYGZus{}ok), \PYGZsq{}100\PYGZpc{}\PYGZsq{}] [per\PYGZus{}ok == 100]}
+
+\PYG{l+s+sd}{          \PYGZsh{}text to DEL}
+\PYG{l+s+sd}{          text\PYGZus{}del.append(oText)}
+
+\PYG{l+s+sd}{          \PYGZsh{}text to ADD}
+\PYG{l+s+sd}{          font\PYGZus{}prop = fm.FontProperties(weight=\PYGZsq{}bold\PYGZsq{}, size=fz)}
+\PYG{l+s+sd}{          text\PYGZus{}kwargs = dict(color=\PYGZsq{}w\PYGZsq{}, ha=\PYGZdq{}center\PYGZdq{}, va=\PYGZdq{}center\PYGZdq{}, gid=\PYGZsq{}sum\PYGZsq{}, fontproperties=font\PYGZus{}prop)}
+\PYG{l+s+sd}{          lis\PYGZus{}txt = [\PYGZsq{}\PYGZpc{}d\PYGZsq{}\PYGZpc{}(cell\PYGZus{}val), per\PYGZus{}ok\PYGZus{}s, \PYGZsq{}\PYGZpc{}.2f\PYGZpc{}\PYGZpc{}\PYGZsq{}\PYGZpc{}(per\PYGZus{}err)]}
+\PYG{l+s+sd}{          lis\PYGZus{}kwa = [text\PYGZus{}kwargs]}
+\PYG{l+s+sd}{          dic = text\PYGZus{}kwargs.copy(); dic[\PYGZsq{}color\PYGZsq{}] = \PYGZsq{}g\PYGZsq{}; lis\PYGZus{}kwa.append(dic);}
+\PYG{l+s+sd}{          dic = text\PYGZus{}kwargs.copy(); dic[\PYGZsq{}color\PYGZsq{}] = \PYGZsq{}r\PYGZsq{}; lis\PYGZus{}kwa.append(dic);}
+\PYG{l+s+sd}{          lis\PYGZus{}pos = [(oText.\PYGZus{}x, oText.\PYGZus{}y\PYGZhy{}0.3), (oText.\PYGZus{}x, oText.\PYGZus{}y), (oText.\PYGZus{}x, oText.\PYGZus{}y+0.3)]}
+\PYG{l+s+sd}{          for i in range(len(lis\PYGZus{}txt)):}
+\PYG{l+s+sd}{              newText = dict(x=lis\PYGZus{}pos[i][0], y=lis\PYGZus{}pos[i][1], text=lis\PYGZus{}txt[i], kw=lis\PYGZus{}kwa[i])}
+\PYG{l+s+sd}{              \PYGZsh{}print \PYGZsq{}lin: \PYGZpc{}s, col: \PYGZpc{}s, newText: \PYGZpc{}s\PYGZsq{} \PYGZpc{}(lin, col, newText)}
+\PYG{l+s+sd}{              text\PYGZus{}add.append(newText)}
+\PYG{l+s+sd}{          \PYGZsh{}print \PYGZsq{}\PYGZbs{}n\PYGZsq{}}
+
+\PYG{l+s+sd}{          \PYGZsh{}set background color for sum cells (last line and last column)}
+\PYG{l+s+sd}{          carr = [0.27, 0.30, 0.27, 1.0]}
+\PYG{l+s+sd}{          if(col == ccl \PYGZhy{} 1) and (lin == ccl \PYGZhy{} 1):}
+\PYG{l+s+sd}{              carr = [0.17, 0.20, 0.17, 1.0]}
+\PYG{l+s+sd}{          facecolors[posi] = carr}
+
+\PYG{l+s+sd}{      else:}
+\PYG{l+s+sd}{          if(per \PYGZgt{} 0):}
+\PYG{l+s+sd}{              txt = \PYGZsq{}\PYGZpc{}s\PYGZbs{}n\PYGZpc{}.2f\PYGZpc{}\PYGZpc{}\PYGZsq{} \PYGZpc{}(cell\PYGZus{}val, per)}
+\PYG{l+s+sd}{          else:}
+\PYG{l+s+sd}{              if(show\PYGZus{}null\PYGZus{}values == 0):}
+\PYG{l+s+sd}{                  txt = \PYGZsq{}\PYGZsq{}}
+\PYG{l+s+sd}{              elif(show\PYGZus{}null\PYGZus{}values == 1):}
+\PYG{l+s+sd}{                  txt = \PYGZsq{}0\PYGZsq{}}
+\PYG{l+s+sd}{              else:}
+\PYG{l+s+sd}{                  txt = \PYGZsq{}0\PYGZbs{}n0.0\PYGZpc{}\PYGZsq{}}
+\PYG{l+s+sd}{          oText.set\PYGZus{}text(txt)}
+
+\PYG{l+s+sd}{          \PYGZsh{}main diagonal}
+\PYG{l+s+sd}{          if(col == lin):}
+\PYG{l+s+sd}{              \PYGZsh{}set color of the textin the diagonal to white}
+\PYG{l+s+sd}{              oText.set\PYGZus{}color(\PYGZsq{}w\PYGZsq{})}
+\PYG{l+s+sd}{              \PYGZsh{} set background color in the diagonal to blue}
+\PYG{l+s+sd}{              facecolors[posi] = [0.35, 0.8, 0.55, 1.0]}
+\PYG{l+s+sd}{          else:}
+\PYG{l+s+sd}{              oText.set\PYGZus{}color(\PYGZsq{}r\PYGZsq{})}
+
+\PYG{l+s+sd}{      return text\PYGZus{}add, text\PYGZus{}del}
+\PYG{l+s+sd}{  \PYGZsh{}}
+
+\PYG{l+s+sd}{  def \PYGZus{}insert\PYGZus{}totals(df\PYGZus{}cm):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}} \PYG{n}{insert} \PYG{n}{total} \PYG{n}{column} \PYG{o+ow}{and} \PYG{n}{line} \PYG{p}{(}\PYG{n}{the} \PYG{n}{last} \PYG{n}{ones}\PYG{p}{)} \PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+s2}{      sum\PYGZus{}col = []}
+\PYG{l+s+s2}{      for c in df\PYGZus{}cm.columns:}
+\PYG{l+s+s2}{          sum\PYGZus{}col.append( df\PYGZus{}cm[c].sum() )}
+\PYG{l+s+s2}{      sum\PYGZus{}lin = []}
+\PYG{l+s+s2}{      for item\PYGZus{}line in df\PYGZus{}cm.iterrows():}
+\PYG{l+s+s2}{          sum\PYGZus{}lin.append( item\PYGZus{}line[1].sum() )}
+\PYG{l+s+s2}{      df\PYGZus{}cm[\PYGZsq{}sum\PYGZus{}lin\PYGZsq{}] = sum\PYGZus{}lin}
+\PYG{l+s+s2}{      sum\PYGZus{}col.append(np.sum(sum\PYGZus{}lin))}
+\PYG{l+s+s2}{      df\PYGZus{}cm.loc[\PYGZsq{}sum\PYGZus{}col\PYGZsq{}] = sum\PYGZus{}col}
+\PYG{l+s+s2}{      \PYGZsh{}print (\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{df\PYGZus{}cm:}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZsq{}, df\PYGZus{}cm, \PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}n\PYGZbs{}b\PYGZbs{}n}\PYG{l+s+s2}{\PYGZsq{})}
+\PYG{l+s+s2}{  \PYGZsh{}}
+
+\PYG{l+s+s2}{  def pretty\PYGZus{}plot\PYGZus{}confusion\PYGZus{}matrix(df\PYGZus{}cm, annot=True, cmap=\PYGZdq{}Oranges\PYGZdq{}, fmt=\PYGZsq{}.2f\PYGZsq{}, fz=11,}
+\PYG{l+s+s2}{        lw=0.5, cbar=False, figsize=[8,8], show\PYGZus{}null\PYGZus{}values=0, pred\PYGZus{}val\PYGZus{}axis=\PYGZsq{}y\PYGZsq{}):}
+\PYG{l+s+s2}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+        \PYG{k}{print} \PYG{n}{conf} \PYG{n}{matrix} \PYG{k}{with} \PYG{n}{default} \PYG{n}{layout} \PYG{p}{(}\PYG{n}{like} \PYG{n}{matlab}\PYG{p}{)}
+        \PYG{n}{params}\PYG{p}{:}
+          \PYG{n}{df\PYGZus{}cm}          \PYG{n}{dataframe} \PYG{p}{(}\PYG{n}{pandas}\PYG{p}{)} \PYG{n}{without} \PYG{n}{totals}
+          \PYG{n}{annot}          \PYG{k}{print} \PYG{n}{text} \PYG{o+ow}{in} \PYG{n}{each} \PYG{n}{cell}
+          \PYG{n}{cmap}           \PYG{n}{Oranges}\PYG{p}{,}\PYG{n}{Oranges\PYGZus{}r}\PYG{p}{,}\PYG{n}{YlGnBu}\PYG{p}{,}\PYG{n}{Blues}\PYG{p}{,}\PYG{n}{RdBu}\PYG{p}{,} \PYG{o}{...} \PYG{n}{see}\PYG{p}{:}
+          \PYG{n}{fz}             \PYG{n}{fontsize}
+          \PYG{n}{lw}             \PYG{n}{linewidth}
+          \PYG{n}{pred\PYGZus{}val\PYGZus{}axis}  \PYG{n}{where} \PYG{n}{to} \PYG{n}{show} \PYG{n}{the} \PYG{n}{prediction} \PYG{n}{values} \PYG{p}{(}\PYG{n}{x} \PYG{o+ow}{or} \PYG{n}{y} \PYG{n}{axis}\PYG{p}{)}
+                          \PYG{l+s+s1}{\PYGZsq{}col\PYGZsq{}} \PYG{o+ow}{or} \PYG{l+s+s1}{\PYGZsq{}x\PYGZsq{}}\PYG{p}{:} \PYG{n}{show} \PYG{n}{predicted} \PYG{n}{values} \PYG{o+ow}{in} \PYG{n}{columns} \PYG{p}{(}\PYG{n}{x} \PYG{n}{axis}\PYG{p}{)} \PYG{n}{instead} \PYG{n}{lines}
+                          \PYG{l+s+s1}{\PYGZsq{}lin\PYGZsq{}} \PYG{o+ow}{or} \PYG{l+s+s1}{\PYGZsq{}y\PYGZsq{}}\PYG{p}{:} \PYG{n}{show} \PYG{n}{predicted} \PYG{n}{values} \PYG{o+ow}{in} \PYG{n}{lines}   \PYG{p}{(}\PYG{n}{y} \PYG{n}{axis}\PYG{p}{)}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      if(pred\PYGZus{}val\PYGZus{}axis in (\PYGZsq{}col\PYGZsq{}, \PYGZsq{}x\PYGZsq{})):}
+\PYG{l+s+sd}{          xlbl = \PYGZsq{}Predicted\PYGZsq{}}
+\PYG{l+s+sd}{          ylbl = \PYGZsq{}Actual\PYGZsq{}}
+\PYG{l+s+sd}{      else:}
+\PYG{l+s+sd}{          xlbl = \PYGZsq{}Actual\PYGZsq{}}
+\PYG{l+s+sd}{          ylbl = \PYGZsq{}Predicted\PYGZsq{}}
+\PYG{l+s+sd}{          df\PYGZus{}cm = df\PYGZus{}cm.T}
+
+\PYG{l+s+sd}{      \PYGZsh{} create \PYGZdq{}Total\PYGZdq{} column}
+\PYG{l+s+sd}{      \PYGZus{}insert\PYGZus{}totals(df\PYGZus{}cm)}
+
+\PYG{l+s+sd}{      \PYGZsh{}this is for print allways in the same window}
+\PYG{l+s+sd}{      fig, ax1 = \PYGZus{}get\PYGZus{}new\PYGZus{}fig(\PYGZsq{}Conf matrix default\PYGZsq{}, figsize)}
+
+\PYG{l+s+sd}{      \PYGZsh{}thanks for seaborn}
+\PYG{l+s+sd}{      ax = sns.heatmap(df\PYGZus{}cm, annot=annot, annot\PYGZus{}kws=\PYGZob{}\PYGZdq{}size\PYGZdq{}: fz\PYGZcb{}, linewidths=lw, ax=ax1,}
+\PYG{l+s+sd}{                      cbar=cbar, cmap=cmap, linecolor=\PYGZsq{}w\PYGZsq{}, fmt=fmt)}
+
+\PYG{l+s+sd}{      \PYGZsh{}set ticklabels rotation}
+\PYG{l+s+sd}{      ax.set\PYGZus{}xticklabels(ax.get\PYGZus{}xticklabels(), rotation = 45, fontsize = 10)}
+\PYG{l+s+sd}{      ax.set\PYGZus{}yticklabels(ax.get\PYGZus{}yticklabels(), rotation = 25, fontsize = 10)}
+
+\PYG{l+s+sd}{      \PYGZsh{} Turn off all the ticks}
+\PYG{l+s+sd}{      for t in ax.xaxis.get\PYGZus{}major\PYGZus{}ticks():}
+\PYG{l+s+sd}{          t.tick1On = False}
+\PYG{l+s+sd}{          t.tick2On = False}
+\PYG{l+s+sd}{      for t in ax.yaxis.get\PYGZus{}major\PYGZus{}ticks():}
+\PYG{l+s+sd}{          t.tick1On = False}
+\PYG{l+s+sd}{          t.tick2On = False}
+
+\PYG{l+s+sd}{      \PYGZsh{}face colors list}
+\PYG{l+s+sd}{      quadmesh = ax.findobj(QuadMesh)[0]}
+\PYG{l+s+sd}{      facecolors = quadmesh.get\PYGZus{}facecolors()}
+
+\PYG{l+s+sd}{      \PYGZsh{}iter in text elements}
+\PYG{l+s+sd}{      array\PYGZus{}df = np.array( df\PYGZus{}cm.to\PYGZus{}records(index=False).tolist() )}
+\PYG{l+s+sd}{      text\PYGZus{}add = []; text\PYGZus{}del = [];}
+\PYG{l+s+sd}{      posi = \PYGZhy{}1 \PYGZsh{}from left to right, bottom to top.}
+\PYG{l+s+sd}{      for t in ax.collections[0].axes.texts: \PYGZsh{}ax.texts:}
+\PYG{l+s+sd}{          pos = np.array( t.get\PYGZus{}position()) \PYGZhy{} [0.5,0.5]}
+\PYG{l+s+sd}{          lin = int(pos[1]); col = int(pos[0]);}
+\PYG{l+s+sd}{          posi += 1}
+\PYG{l+s+sd}{          \PYGZsh{}print (\PYGZsq{}\PYGZgt{}\PYGZgt{}\PYGZgt{} pos: \PYGZpc{}s, posi: \PYGZpc{}s, val: \PYGZpc{}s, txt: \PYGZpc{}s\PYGZsq{} \PYGZpc{}(pos, posi, array\PYGZus{}df[lin][col], t.get\PYGZus{}text()))}
+
+\PYG{l+s+sd}{          \PYGZsh{}set text}
+\PYG{l+s+sd}{          txt\PYGZus{}res = \PYGZus{}configcell\PYGZus{}text\PYGZus{}and\PYGZus{}colors(array\PYGZus{}df, lin, col, t, facecolors, posi, fz, fmt, show\PYGZus{}null\PYGZus{}values)}
+
+\PYG{l+s+sd}{          text\PYGZus{}add.extend(txt\PYGZus{}res[0])}
+\PYG{l+s+sd}{          text\PYGZus{}del.extend(txt\PYGZus{}res[1])}
+
+\PYG{l+s+sd}{      \PYGZsh{}remove the old ones}
+\PYG{l+s+sd}{      for item in text\PYGZus{}del:}
+\PYG{l+s+sd}{          item.remove()}
+\PYG{l+s+sd}{      \PYGZsh{}append the new ones}
+\PYG{l+s+sd}{      for item in text\PYGZus{}add:}
+\PYG{l+s+sd}{          ax.text(item[\PYGZsq{}x\PYGZsq{}], item[\PYGZsq{}y\PYGZsq{}], item[\PYGZsq{}text\PYGZsq{}], **item[\PYGZsq{}kw\PYGZsq{}])}
+
+\PYG{l+s+sd}{      \PYGZsh{}titles and legends}
+\PYG{l+s+sd}{      ax.set\PYGZus{}title(\PYGZsq{}Confusion matrix\PYGZsq{})}
+\PYG{l+s+sd}{      ax.set\PYGZus{}xlabel(xlbl)}
+\PYG{l+s+sd}{      ax.set\PYGZus{}ylabel(ylbl)}
+\PYG{l+s+sd}{      plt.tight\PYGZus{}layout()  \PYGZsh{}set layout slim}
+\PYG{l+s+sd}{      plt.show()}
+\PYG{l+s+sd}{      return ax}
+
+
+\PYG{l+s+sd}{  def plot\PYGZus{}confusion\PYGZus{}matrix\PYGZus{}from\PYGZus{}data(y\PYGZus{}test, predictions, columns=None, annot=True, cmap=\PYGZdq{}Oranges\PYGZdq{},}
+\PYG{l+s+sd}{        fmt=\PYGZsq{}.2f\PYGZsq{}, fz=11, lw=0.5, cbar=False, figsize=[8,8], show\PYGZus{}null\PYGZus{}values=0, pred\PYGZus{}val\PYGZus{}axis=\PYGZsq{}lin\PYGZsq{}):}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+          \PYG{n}{plot} \PYG{n}{confusion} \PYG{n}{matrix} \PYG{n}{function} \PYG{k}{with} \PYG{n}{y\PYGZus{}test} \PYG{p}{(}\PYG{n}{actual} \PYG{n}{values}\PYG{p}{)} \PYG{o+ow}{and} \PYG{n}{predictions} \PYG{p}{(}\PYG{n}{predic}\PYG{p}{),}
+          \PYG{n}{whitout} \PYG{n}{a} \PYG{n}{confusion} \PYG{n}{matrix} \PYG{n}{yet}
+      \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{      from sklearn.metrics import confusion\PYGZus{}matrix}
+\PYG{l+s+sd}{      from pandas import DataFrame}
+
+\PYG{l+s+sd}{      \PYGZsh{}data}
+\PYG{l+s+sd}{      if(not columns):}
+\PYG{l+s+sd}{          \PYGZsh{}labels axis integer:}
+\PYG{l+s+sd}{          \PYGZsh{}\PYGZsh{}columns = range(1, len(np.unique(y\PYGZus{}test))+1)}
+\PYG{l+s+sd}{          \PYGZsh{}labels axis string:}
+\PYG{l+s+sd}{          from string import ascii\PYGZus{}uppercase}
+\PYG{l+s+sd}{          columns = [\PYGZsq{}class \PYGZpc{}s\PYGZsq{} \PYGZpc{}(i) for i in list(ascii\PYGZus{}uppercase)[0:len(np.unique(y\PYGZus{}test))]]}
+
+\PYG{l+s+sd}{      confm = confusion\PYGZus{}matrix(y\PYGZus{}test, predictions)}
+\PYG{l+s+sd}{      cmap = \PYGZsq{}Oranges\PYGZsq{};}
+\PYG{l+s+sd}{      fz = 11;}
+\PYG{l+s+sd}{      figsize=[9,9];}
+\PYG{l+s+sd}{      show\PYGZus{}null\PYGZus{}values = 2}
+\PYG{l+s+sd}{      df\PYGZus{}cm = DataFrame(confm, index=columns, columns=columns)}
+\PYG{l+s+sd}{      pretty\PYGZus{}plot\PYGZus{}confusion\PYGZus{}matrix(df\PYGZus{}cm, fz=fz, cmap=cmap, figsize=figsize, show\PYGZus{}null\PYGZus{}values=show\PYGZus{}null\PYGZus{}values, pred\PYGZus{}val\PYGZus{}axis=pred\PYGZus{}val\PYGZus{}axis)}
+\PYG{l+s+sd}{  \PYGZsh{}}
+
+
+
+\PYG{l+s+sd}{  \PYGZsh{}}
+\PYG{l+s+sd}{  \PYGZsh{}TEST functions}
+\PYG{l+s+sd}{  \PYGZsh{}}
+\PYG{l+s+sd}{  def \PYGZus{}test\PYGZus{}cm():}
+\PYG{l+s+sd}{      \PYGZsh{}test function with confusion matrix done}
+\PYG{l+s+sd}{      array = np.array( [[13,  0,  1,  0,  2,  0],}
+\PYG{l+s+sd}{                         [ 0, 50,  2,  0, 10,  0],}
+\PYG{l+s+sd}{                         [ 0, 13, 16,  0,  0,  3],}
+\PYG{l+s+sd}{                         [ 0,  0,  0, 13,  1,  0],}
+\PYG{l+s+sd}{                         [ 0, 40,  0,  1, 15,  0],}
+\PYG{l+s+sd}{                         [ 0,  0,  0,  0,  0, 20]])}
+\PYG{l+s+sd}{      \PYGZsh{}get pandas dataframe}
+\PYG{l+s+sd}{      df\PYGZus{}cm = DataFrame(array, index=range(1,7), columns=range(1,7))}
+\PYG{l+s+sd}{      \PYGZsh{}colormap: see this and choose your more dear}
+\PYG{l+s+sd}{      cmap = \PYGZsq{}Oranges\PYGZsq{}}
+\PYG{l+s+sd}{      pretty\PYGZus{}plot\PYGZus{}confusion\PYGZus{}matrix(df\PYGZus{}cm, cmap=cmap)}
+\PYG{l+s+sd}{  \PYGZsh{}}
+
+\PYG{l+s+sd}{  def \PYGZus{}test\PYGZus{}data\PYGZus{}class():}
+\PYG{l+s+sd}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}} \PYG{n}{test} \PYG{n}{function} \PYG{k}{with} \PYG{n}{y\PYGZus{}test} \PYG{p}{(}\PYG{n}{actual} \PYG{n}{values}\PYG{p}{)} \PYG{o+ow}{and} \PYG{n}{predictions} \PYG{p}{(}\PYG{n}{predic}\PYG{p}{)} \PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+s2}{      \PYGZsh{}data}
+\PYG{l+s+s2}{      y\PYGZus{}test = np.array([1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5])}
+\PYG{l+s+s2}{      predic = np.array([1,2,4,3,5, 1,2,4,3,5, 1,2,3,4,4, 1,4,3,4,5, 1,2,4,4,5, 1,2,4,4,5, 1,2,4,4,5, 1,2,4,4,5, 1,2,3,3,5, 1,2,3,3,5, 1,2,3,4,4, 1,2,3,4,1, 1,2,3,4,1, 1,2,3,4,1, 1,2,4,4,5, 1,2,4,4,5, 1,2,4,4,5, 1,2,4,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5, 1,2,3,4,5])}
+\PYG{l+s+s2}{      \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+        \PYG{n}{Examples} \PYG{n}{to} \PYG{n}{validate} \PYG{n}{output} \PYG{p}{(}\PYG{n}{confusion} \PYG{n}{matrix} \PYG{n}{plot}\PYG{p}{)}
+          \PYG{n}{actual}\PYG{p}{:} \PYG{l+m+mi}{5} \PYG{o+ow}{and} \PYG{n}{prediction} \PYG{l+m+mi}{1}   \PYG{o}{\PYGZgt{}\PYGZgt{}}  \PYG{l+m+mi}{3}
+          \PYG{n}{actual}\PYG{p}{:} \PYG{l+m+mi}{2} \PYG{o+ow}{and} \PYG{n}{prediction} \PYG{l+m+mi}{4}   \PYG{o}{\PYGZgt{}\PYGZgt{}}  \PYG{l+m+mi}{1}
+          \PYG{n}{actual}\PYG{p}{:} \PYG{l+m+mi}{3} \PYG{o+ow}{and} \PYG{n}{prediction} \PYG{l+m+mi}{4}   \PYG{o}{\PYGZgt{}\PYGZgt{}}  \PYG{l+m+mi}{10}
+      \PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+s2}{      columns = []}
+\PYG{l+s+s2}{      annot = True;}
+\PYG{l+s+s2}{      cmap = \PYGZsq{}Oranges\PYGZsq{};}
+\PYG{l+s+s2}{      fmt = \PYGZsq{}.2f\PYGZsq{}}
+\PYG{l+s+s2}{      lw = 0.5}
+\PYG{l+s+s2}{      cbar = False}
+\PYG{l+s+s2}{      show\PYGZus{}null\PYGZus{}values = 2}
+\PYG{l+s+s2}{      pred\PYGZus{}val\PYGZus{}axis = \PYGZsq{}y\PYGZsq{}}
+\PYG{l+s+s2}{      \PYGZsh{}size::}
+\PYG{l+s+s2}{      fz = 12;}
+\PYG{l+s+s2}{      figsize = [9,9];}
+\PYG{l+s+s2}{      if(len(y\PYGZus{}test) \PYGZgt{} 10):}
+\PYG{l+s+s2}{          fz=9; figsize=[14,14];}
+\PYG{l+s+s2}{      plot\PYGZus{}confusion\PYGZus{}matrix\PYGZus{}from\PYGZus{}data(y\PYGZus{}test, predic, columns,}
+\PYG{l+s+s2}{        annot, cmap, fmt, fz, lw, cbar, figsize, show\PYGZus{}null\PYGZus{}values, pred\PYGZus{}val\PYGZus{}axis)}
+\PYG{l+s+s2}{  \PYGZsh{}}
+
+
+\PYG{l+s+s2}{  \PYGZsh{}}
+\PYG{l+s+s2}{  \PYGZsh{}MAIN function}
+\PYG{l+s+s2}{  \PYGZsh{}}
+\PYG{l+s+s2}{  if(\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{} == \PYGZsq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZsq{}):}
+\PYG{l+s+s2}{      print(\PYGZsq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZsq{})}
+\PYG{l+s+s2}{      print(\PYGZsq{}\PYGZus{}test\PYGZus{}cm: test function with confusion matrix done}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{and pause\PYGZsq{})}
+\PYG{l+s+s2}{      \PYGZus{}test\PYGZus{}cm()}
+\PYG{l+s+s2}{      plt.pause(5)}
+\PYG{l+s+s2}{      print(\PYGZsq{}\PYGZus{}test\PYGZus{}data\PYGZus{}class: test function with y\PYGZus{}test (actual values) and predictions (predic)\PYGZsq{})}
+\PYG{l+s+s2}{      \PYGZus{}test\PYGZus{}data\PYGZus{}class()}
+\end{Verbatim}

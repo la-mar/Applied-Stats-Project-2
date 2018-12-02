@@ -9,8 +9,11 @@
     % provides `old' commands for table of contents. Eases the ability to switch
     % between book and scrbook
     \usepackage{scrhack}
-
-
+    % \usepackage[style=authoryear]{biblatex}
+    % % \usepackage{biblatex}
+    \usepackage{booktabs} % Required by Pandas
+    \usepackage{longtable} % Required by Pandas
+    \usepackage{multirow} % Required by Pandas
     % ------------------- layout, default -------------------
     % adjust the style of float's captions, separated from text to improve readabilty
     \usepackage[labelfont=bf, labelsep=colon, format=hang, textfont=singlespacing]{caption}
@@ -33,7 +36,7 @@
     \usepackage[dvipsnames]{xcolor}  % more colors
     \usepackage{array}  % custom format per column in table - needed on the title page
     \usepackage{graphicx}  % include graphics
-    \usepackage{subfig}  % divide figure, e.g. 1(a), 1(b)...
+    % \usepackage{subfig}  % divide figure, e.g. 1(a), 1(b)...
     \usepackage{amsmath}  % |
     \usepackage{amsthm}   % | math, bmatrix etc
     \usepackage{amsfonts} % |
@@ -49,10 +52,11 @@
     \usepackage{graphicx}
     \usepackage[T1]{fontenc}
     \usepackage{lmodern}
+    \usepackage{subcaption}
     %==========================================
     % needed for the example floats
     % ------------------- functional, custom -------------------
-    \usepackage{algorithm,algpseudocode}
+    \usepackage{algorithm,algpseudocode} % Algorithmic expressions
     \usepackage{bm}  % bold greek variables (boldmath)
     \usepackage{tikz}
     \usetikzlibrary{positioning}  % use: above left of, etc
@@ -91,6 +95,8 @@
     \newcommand{\draft}[1]{\textbf{\textcolor{NavyBlue}{(DRAFT: #1)}}}
 
 
+
+
     % ------------------- math formatting commands -------------------
     % define vectors to be bold instead of using an arrow
     \renewcommand{\vec}[1]{\mathbf{#1}}
@@ -99,14 +105,18 @@
     \newcommand{\eqname}[1]{\tag*{#1}}
     \usepackage[normalem]{ulem}
     \useunder{\uline}{\ul}{}
+    \usepackage{minted} % Code formatting
+    \usepackage{csquotes} % Typeset quotations
+    \usepackage{url}
+
 
     % ------------------- table formatting -------------------
     \newcolumntype{L}{>{\centering\arraybackslash}m{3cm}}
 
     % ------------------- pdf settings -------------------
 
-    \hypersetup{pdftitle={Term Project},
+    \hypersetup{pdftitle={Term Project 2},
                 pdfauthor={},
-                pdfsubject={Cloud Computing},
+                pdfsubject={Applied Statistics},
                 pdfkeywords={},
                 pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false}

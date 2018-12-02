@@ -1,0 +1,22 @@
+\resizebox{\textwidth}{!}{\begin{tabular}{lrrr}
+\toprule
+{} &  Coef. &  [0.025 &            0.975] \\
+\midrule
+lat                    &   -100 &    -100 &               -99 \\
+lon                    &    -99 &    -100 & 15313019471062054 \\
+playoffs               &   6978 &     -99 &         140017285 \\
+seconds\_remaining      &     15 &      -3 &                37 \\
+shot\_distance          &    -85 &     -93 &               -64 \\
+attendance             &      2 &       1 &                 2 \\
+arena\_temp             &   2699 &     505 &             13151 \\
+avgnoisedb             &     28 &     -72 &               499 \\
+seconds\_left\_in\_period &      1 &      -1 &                 2 \\
+last\_seconds\_of\_period &   -100 &    -100 &              -100 \\
+seconds\_left\_in\_game   &      1 &       0 &                 1 \\
+home\_or\_away           &    -92 &    -100 &              3078 \\
+num\_shots\_cumulative   &      5 &     -53 &               140 \\
+angle\_from\_basket      &      2 &      -6 &                10 \\
+season\_count           &    154 &      31 &               394 \\
+\bottomrule
+\end{tabular}
+}\captionof{table}{Feature Summary}\label{tbl:featuresummary}

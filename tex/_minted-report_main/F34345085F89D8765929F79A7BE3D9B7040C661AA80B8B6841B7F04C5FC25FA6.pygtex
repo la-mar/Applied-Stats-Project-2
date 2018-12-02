@@ -1,0 +1,665 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{c}{ MSDS 6371 \PYGZhy{} Applied Statistics  */}
+\PYG{c}{ Allen Crane and Brock Friedrich */}
+\PYG{c}{ Kobe Bryant Shot Selection      */}
+\PYG{c}{ November 2018                   */}
+
+\PYG{c}{ import data */}
+\PYG{k+kr}{oc import }datafile=\PYG{l+s}{\PYGZdq{}c:\PYGZbs{}users\PYGZbs{}allen\PYGZbs{}documents\PYGZbs{}smu data science\PYGZbs{}MSDS 6372 \PYGZhy{} Applied Statistics\PYGZbs{}project 2\PYGZbs{}project2Data.csv\PYGZdq{}}
+        dbms=dlm \PYG{k}{out}=train \PYG{k}{replace};
+   \PYG{k}{delimiter}=\PYG{l+s}{\PYGZsq{},\PYGZsq{}};
+   getnames=yes\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=train (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ investigate data for variable types*/}
+\PYG{k+kr}{oc contents }data=train\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ look for missing numeric data \PYGZhy{} may need to impute */}
+\PYG{k+kr}{oc means }data = train n nmiss;
+var \PYG{k+kc}{\PYGZus{}numeric\PYGZus{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ investigate means of training data and any missing values */}
+\PYG{k+kr}{oc means }data = train n nmiss\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ univariate data analysis */}
+\PYG{k+kr}{oc univariate }data = train;
+r season\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ note that certain \PYGZdq{}season\PYGZdq{} fields are missing */}
+\PYG{k+kr}{ta }\PYGZus{}season;
+  \PYG{k}{set} train;
+  \PYG{k}{where} \PYG{k}{missing} (season)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print \PYGZdq{}season\PYGZdq{} data, where \PYGZdq{}season\PYGZdq{} is missing */}
+\PYG{k+kr}{oc print }data=\PYGZus{}season (obs=\PYG{l+m}{200})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+\PYG{c}{ more univariate data analysis */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc univariate }data = train plot;
+r recId
+me\PYGZus{}event\PYGZus{}id
+me\PYGZus{}id
+t
+c\PYGZus{}x
+c\PYGZus{}y
+n
+nutes\PYGZus{}remaining
+riod
+ayoffs
+ason
+conds\PYGZus{}remaining
+ot\PYGZus{}distance
+ot\PYGZus{}made\PYGZus{}flag
+am\PYGZus{}id
+me\PYGZus{}date
+ot\PYGZus{}id
+tendance
+ena\PYGZus{}temp
+gnoisedb
+
+\PYG{k+kr}{n;}
+s graphics off;
+
+\PYG{c}{ create a time\PYGZhy{}based variable, concatenating Period, minutes remaining, and seconds remaining, in descending order. This one is for Periods remaining... */}
+\PYG{k+kr}{ta }train2;
+\PYG{k}{set} train;
+    \PYG{k}{if} period = \PYG{l+m}{1} \PYG{k}{then} periods\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}14\PYGZdq{}};
+    \PYG{k}{else} \PYG{k}{if} period = \PYG{l+m}{2} \PYG{k}{then} periods\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}28\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} period = \PYG{l+m}{3} \PYG{k}{then} periods\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}42\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} period = \PYG{l+m}{4} \PYG{k}{then} periods\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}57\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} period = \PYG{l+m}{5} \PYG{k}{then} periods\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}71\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} period = \PYG{l+m}{6} \PYG{k}{then} periods\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}85\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} period = \PYG{l+m}{7} \PYG{k}{then} periods\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}99\PYGZdq{}};
+ \PYG{k}{else} periods\PYGZus{}remaining2 = period\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=train2 (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ Minutes remaining... */}
+\PYG{k+kr}{ta }train2;
+\PYG{k}{set} train2;
+    \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{11} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}99\PYGZdq{}};
+    \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{10} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}90\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{9} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}81\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{8} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}72\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{7} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}63\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{6} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}54\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{5} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}45\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{4} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}36\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{3} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}27\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{2} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}18\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{1} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}09\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} minutes\PYGZus{}remaining = \PYG{l+m}{0} \PYG{k}{then} minutes\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}00\PYGZdq{}};
+ \PYG{k}{else} minutes\PYGZus{}remaining2 = minutes\PYGZus{}remaining\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=train2 (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ Seconds remaining... */}
+\PYG{k+kr}{ta }train2;
+\PYG{k}{set} train2;
+    \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{59} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}99\PYGZdq{}};
+    \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{58} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}97.3\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{57} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}95.6\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{56} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}94\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{55} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}92.3\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{54} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}90.6\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{53} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}88.9\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{52} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}87.3\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{51} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}85.6\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{50} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}83.9\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{49} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}82.2\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{48} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}80.5\PYGZdq{}};
+    \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{47} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}78.9\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{46} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}77.2\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{45} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}75.5\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{44} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}73.8\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{43} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}72.2\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{42} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}70.5\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{41} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}68.8\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{40} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}67.1\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{39} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}65.4\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{38} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}63.8\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{37} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}62.1\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{36} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}60.4\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{35} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}58.7\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{34} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}57.1\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{33} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}55.4\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{32} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}53.7\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{31} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}52\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{30} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}50.3\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{29} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}48.7\PYGZdq{}};
+    \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{28} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}47\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{27} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}45.3\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{26} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}43.6\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{25} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}41.9\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{24} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}40.3\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{23} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}38.6\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{22} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}36.9\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{21} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}35.2\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{20} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}33.6\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{19} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}31.9\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{18} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}30.2\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{17} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}28.5\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{16} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}26.8\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{15} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}25.2\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{14} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}23.5\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{13} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}21.8\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{12} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}20.1\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{11} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}18.5\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{10} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}16.8\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{9} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}15.1\PYGZdq{}};
+    \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{8} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}13.4\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{7} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}11.7\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{6} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}10.1\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{5} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}08.4\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{4} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}06.7\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{3} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}05\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{2} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}03.4\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{1} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}01.7\PYGZdq{}};
+ \PYG{k}{else} \PYG{k}{if} seconds\PYGZus{}remaining = \PYG{l+m}{0} \PYG{k}{then} seconds\PYGZus{}remaining2 = \PYG{l+s}{\PYGZdq{}00\PYGZdq{}};
+\PYG{k}{se} seconds\PYGZus{}remaining2 = seconds\PYGZus{}remaining\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=train2 (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ concatenante data */}
+\PYG{k+kr}{ta }train2;
+\PYG{k}{t} train2;
+s\PYGZus{}remaining = cat(periods\PYGZus{}remaining2, minutes\PYGZus{}remaining2, seconds\PYGZus{}remaining2)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=train2 (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ make field numeric (some components contained leading zeroes */}
+\PYG{k+kr}{ta }train2;
+\PYG{k}{t} train2;
+ n\PYGZus{}pms\PYGZus{}remaining = \PYG{k}{input}(pms\PYGZus{}remaining,\PYG{l+m}{8}.)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ drop original non\PYGZhy{}numeric concetenanted data field */}
+\PYG{k+kr}{ta }train2;
+\PYG{k}{t} train2 (\PYG{k}{drop} = pms\PYGZus{}remaining)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+\PYG{k+kr}{ta }train2;
+
+\PYG{c}{ rename new numeric concatenated data field  */}
+\PYG{k}{t} train2 (\PYG{k}{rename}=(
+\PYG{l+s}{\PYGZus{}pms\PYGZus{}remaining\PYGZsq{}}n=\PYG{l+s}{\PYGZsq{}pms\PYGZus{}remaining\PYGZsq{}}n))\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=train2 (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+
+
+
+\PYG{c}{ check data \PYGZhy{} histogram */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc univariate }data = train2;
+r pms\PYGZus{}remaining;
+stogram\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+\PYG{c}{ check data \PYGZhy{} scatter plot */}
+\PYG{k+kr}{oc sgplot }data=train2;
+ scatter \PYG{k}{x}=pms\PYGZus{}remaining y=shot\PYGZus{}made\PYGZus{}flag / \PYG{k}{group}=shot\PYGZus{}made\PYGZus{}flag\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+
+\PYG{c}{ transform data \PYGZhy{} log transformation on shot distance and time remaining */}
+\PYG{k+kr}{ta }train3;
+\PYG{k}{t} train2;
+shot\PYGZus{}distance = \PYG{n+nb}{log(}shot\PYGZus{}distance);
+pms\PYGZus{}remaining = \PYG{n+nb}{log(}pms\PYGZus{}remaining)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+\PYG{c}{ check data \PYGZhy{} scatter plot */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc univariate }data = train3 plot;
+r l\PYGZus{}shot\PYGZus{}distance l\PYGZus{}pms\PYGZus{}remaining\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+
+
+\PYG{c}{ correlation analysis */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc corr }data=train2 plots=matrix(histogram);
+r recId
+me\PYGZus{}event\PYGZus{}id
+me\PYGZus{}id
+t
+c\PYGZus{}x
+c\PYGZus{}y
+n
+nutes\PYGZus{}remaining
+riod
+ayoffs
+ason
+conds\PYGZus{}remaining
+ot\PYGZus{}distance
+ot\PYGZus{}made\PYGZus{}flag
+am\PYGZus{}id
+me\PYGZus{}date
+ot\PYGZus{}id
+tendance
+ena\PYGZus{}temp
+gnoisedb\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+
+\PYG{c}{ principal component analysis */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc princomp }plots=all data=train2 cov \PYG{k}{out}=pca;
+r recId
+me\PYGZus{}event\PYGZus{}id
+me\PYGZus{}id
+t
+c\PYGZus{}x
+c\PYGZus{}y
+n
+nutes\PYGZus{}remaining
+riod
+ayoffs
+ason
+conds\PYGZus{}remaining
+ot\PYGZus{}distance
+ot\PYGZus{}made\PYGZus{}flag
+am\PYGZus{}id
+me\PYGZus{}date
+ot\PYGZus{}id
+tendance
+ena\PYGZus{}temp
+gnoisedb\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ correlation analysis using train2 data vs shot made flag */}
+\PYG{k+kr}{oc corr }data=train2 plots=matrix(histogram);
+    var shot\PYGZus{}made\PYGZus{}flag game\PYGZus{}event\PYGZus{}id lat loc\PYGZus{}y minutes\PYGZus{}remaining period seconds\PYGZus{}remaining shot\PYGZus{}distance attendance arena\PYGZus{}temp avgnoisedb\PYG{k+kr}{;}
+\PYG{k+kr}{    run;}
+
+
+\PYG{c}{ correlation analysis using pricipal components vs shot made flag */}
+\PYG{k+kr}{oc corr }data=pca plots=matrix(histogram);
+    var shot\PYGZus{}made\PYGZus{}flag prin1 \PYGZhy{} prin10\PYG{k+kr}{;}
+\PYG{k+kr}{    run;}
+
+
+\PYG{c}{ model 1 \PYGZhy{} GLM select using PCA */}
+\PYG{k+kr}{oc glmselect }data=pca plots=all seed=\PYG{l+m}{3};
+del shot\PYGZus{}made\PYGZus{}flag =prin1\PYGZhy{}prin10 / selection = stepwise(choose=CV \PYG{k}{select}=CV \PYG{k}{stop}=CV)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+\PYG{c}{ model 2 \PYGZhy{} Logistic using PCA */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=pca plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) =prin1\PYGZhy{}prin10 / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}2\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ model 3 \PYGZhy{} Logistic using train2 dataset (not PCA) only by distance */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=train2 plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}3\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ create data for model 4 \PYGZhy{} data sets for playoffs and not at playoffs */}
+
+\PYG{k+kr}{ta }train2\PYGZus{}playoffs;
+\PYG{k}{t} train2;
+\PYG{k}{ere} playoffs = \PYG{l+m}{1}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{ta }train2\PYGZus{}no\PYGZus{}playoffs;
+\PYG{k}{t} train2;
+\PYG{k}{ere} playoffs = \PYG{l+m}{0}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+\PYG{c}{ model 4A \PYGZhy{} Logistic using train2 dataset (not PCA) during playoffs */}
+
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=train2\PYGZus{}playoffs plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}4A\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ model 4B \PYGZhy{} Logistic using train2 dataset (not PCA) during playoffs */}
+
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=train2\PYGZus{}no\PYGZus{}playoffs plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}4B\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ model 5 \PYGZhy{} Logistic using train2 dataset (not PCA) during playoffs */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=train2 plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance playoffs arena\PYGZus{}temp game\PYGZus{}event\PYGZus{}id lat lon / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}5\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ model 6 \PYGZhy{} Logistic using train2 dataset (not PCA) for all variables that had corr p \PYGZlt{} 0.0001 */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=train2 plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance playoffs period minutes\PYGZus{}remaining seconds\PYGZus{}remaining attendance arena\PYGZus{}temp avgnoisedb / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}6\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ Model 7 \PYGZhy{} LDA Model */}
+
+\PYG{k+kr}{oc discrim }data=train2 outstat=LDAstat method=normal pool=yes
+              \PYG{k}{list} crossvalidate;
+    class shot\PYGZus{}made\PYGZus{}flag;
+    priors prop;
+    var shot\PYGZus{}distance playoffs period minutes\PYGZus{}remaining seconds\PYGZus{}remaining attendance arena\PYGZus{}temp avgnoisedb\PYG{k+kr}{;}
+\PYG{k+kr}{ run;}
+
+
+
+
+
+
+
+
+
+\PYG{c}{ Import test data for prediction model */}
+
+\PYG{c}{ import test data */}
+\PYG{k+kr}{oc import }datafile=\PYG{l+s}{\PYGZdq{}c:\PYGZbs{}users\PYGZbs{}allen\PYGZbs{}documents\PYGZbs{}smu data science\PYGZbs{}MSDS 6372 \PYGZhy{} Applied Statistics\PYGZbs{}project 2\PYGZbs{}project2pred.csv\PYGZdq{}}
+        dbms=dlm \PYG{k}{out}=test \PYG{k}{replace};
+   \PYG{k}{delimiter}=\PYG{l+s}{\PYGZsq{},\PYGZsq{}};
+   getnames=yes\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=test (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ investigate data for variable types*/}
+\PYG{k+kr}{oc contents }data=test\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ look for missing numeric data \PYGZhy{} may need to impute */}
+\PYG{k+kr}{oc means }data = test n nmiss;
+var \PYG{k+kc}{\PYGZus{}numeric\PYGZus{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ investigate means of training data */}
+\PYG{k+kr}{oc means }data = test n nmiss\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ univariate data analysis */}
+\PYG{k+kr}{oc univariate }data = test;
+r season\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ note that certain \PYGZdq{}season\PYGZdq{} fields are missing */}
+\PYG{k+kr}{ta }\PYGZus{}seasontest;
+  \PYG{k}{set} test;
+  \PYG{k}{where} \PYG{k}{missing} (season)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ print \PYGZdq{}season\PYGZdq{} data, where \PYGZdq{}season\PYGZdq{} is missing */}
+\PYG{k+kr}{oc print }data=\PYGZus{}seasontest (obs=\PYG{l+m}{200})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ add empty predicted response field */}
+\PYG{k+kr}{ta }test2;
+\PYG{k}{t} test;
+ot\PYGZus{}made\PYGZus{}flag = .;
+
+
+\PYG{c}{ print data */}
+\PYG{k+kr}{oc print }data=test2 (obs=\PYG{l+m}{200})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+\PYG{c}{ Create TRAIN and TEST fields to distinguish test vs train data. Combine data, predict missing values, create final data set */}
+
+\PYG{k+kr}{ta }train2b;
+\PYG{k}{t} train2;
+\PYG{k}{le} = \PYG{l+s}{\PYGZdq{}TRAIN\PYGZdq{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc print }data=train2b (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{ta }test2b;
+\PYG{k}{t} test2;
+\PYG{k}{le} = \PYG{l+s}{\PYGZdq{}TEST\PYGZdq{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc print }data=test2b (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+
+
+\PYG{c}{ make a numeric shot\PYGZus{}made\PYGZus{}flag variable in test data */}
+
+\PYG{k+kr}{ta }test2c;
+\PYG{k}{t} test2b;
+ n\PYGZus{}shot\PYGZus{}made\PYGZus{}flag = \PYG{k}{input}(shot\PYGZus{}made\PYGZus{}flag,\PYG{l+m}{8}.)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ drop original non\PYGZhy{}numeric shot\PYGZus{}made\PYGZus{}flag */}
+\PYG{k+kr}{ta }test2c;
+\PYG{k}{t} test2c (\PYG{k}{drop} = shot\PYGZus{}made\PYGZus{}flag)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ rename numeric shot\PYGZus{}made\PYGZus{}flag */}
+\PYG{k+kr}{ta }test2c;
+\PYG{k}{t} test2c (\PYG{k}{rename}=(
+\PYG{l+s}{\PYGZus{}shot\PYGZus{}made\PYGZus{}flag\PYGZsq{}}n=\PYG{l+s}{\PYGZsq{}shot\PYGZus{}made\PYGZus{}flag\PYGZsq{}}n))\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ drop the n\PYGZus{}shot\PYGZus{}made\PYGZus{}flag variable */}
+\PYG{k+kr}{ta }test2c;
+\PYG{k}{t} test2c (\PYG{k}{drop} = shot\PYGZus{}made\PYGZus{}flag)\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c}{ rename rannum variable to recId */}
+\PYG{k+kr}{ta }test2c;
+\PYG{k}{t} test2c (\PYG{k}{rename}=(
+\PYG{l+s}{annum\PYGZsq{}}n=\PYG{l+s}{\PYGZsq{}recId\PYGZsq{}}n))\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+
+\PYG{c}{ combine data sets */}
+
+\PYG{k+kr}{ta }test3;
+\PYG{k}{t} train2b test2c\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc print }data=test3 (obs=\PYG{l+m}{10})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc contents }data=test3\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+\PYG{c}{ predict response field (shot\PYGZus{}made\PYGZus{}flag) using desired method */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=test3 plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance playoffs period minutes\PYGZus{}remaining seconds\PYGZus{}remaining attendance arena\PYGZus{}temp avgnoisedb / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{tput} \PYG{k}{out} = model\PYGZus{}test\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ check data for completeness */}
+
+\PYG{k+kr}{oc means }data = results n nmiss;
+var \PYG{k+kc}{\PYGZus{}numeric\PYGZus{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc print }data=results (obs=\PYG{l+m}{10});
+\PYG{k}{ere} \PYG{k}{file} = \PYG{l+s}{\PYGZdq{}TEST\PYGZdq{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc contents }data=results\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc means }data=results
+ Mean Std Min Q1 Median Q3 Max\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{c+cm}{ This is the final step that maps the predicted value into the shot\PYGZus{}made\PYGZus{}flag variable}
+\PYG{c+cm}{d then drops all variables except shot\PYGZus{}id and shot\PYGZus{}made\PYGZus{}flag. */}
+
+\PYG{k+kr}{ta }results\PYGZus{}final;
+\PYG{k}{tain} shot\PYGZus{}id shot\PYGZus{}made\PYGZus{}flag;
+\PYG{k}{t} model\PYGZus{}test\PYGZus{}results;
+ shot\PYGZus{}made\PYGZus{}flag \PYGZlt{} \PYG{l+m}{1} \PYG{k}{then} shot\PYGZus{}made\PYGZus{}flag = predict;
+\PYG{k}{ep} shot\PYGZus{}id shot\PYGZus{}made\PYGZus{}flag;
+\PYG{k}{ere} \PYG{k}{file} = \PYG{l+s}{\PYGZdq{}TEST\PYGZdq{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc print }data=results\PYGZus{}final (obs=\PYG{l+m}{100})\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+\PYG{k+kr}{oc contents }data=results\PYGZus{}final\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+
+
+
+
+
+
+
+
+
+
+
+
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=test3 plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}test3\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+
+\PYG{c}{ model 5 \PYGZhy{} Logistic using train2 dataset (not PCA) during playoffs */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=test3 plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance playoffs arena\PYGZus{}temp game\PYGZus{}event\PYGZus{}id lat lon / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}test5\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off;
+
+
+\PYG{c}{ model 6 \PYGZhy{} Logistic using train2 dataset (not PCA) for all variables that had corr p \PYGZlt{} 0.0001 */}
+s graphics \PYG{k}{on}\PYG{k+kr}{;}
+\PYG{k+kr}{oc logistic }data=test3 plots(only)=(roc(id=obs) effect);
+model shot\PYGZus{}made\PYGZus{}flag (event=\PYG{l+s}{\PYGZsq{}1\PYGZsq{}}) = shot\PYGZus{}distance playoffs period minutes\PYGZus{}remaining seconds\PYGZus{}remaining attendance arena\PYGZus{}temp avgnoisedb / scale=none
+                          		clparm=wald
+                          		clodds=pl
+                          		rsquare
+							lackfit
+							ctable;
+\PYG{k}{output} \PYG{k}{out} = model\PYGZus{}test6\PYGZus{}results p = Predict\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+s graphics off\PYG{k+kr}{;}
+
+
+\PYG{k+kr}{ta }results\PYGZus{}final\PYGZus{}6;
+\PYG{k}{tain} shot\PYGZus{}id shot\PYGZus{}made\PYGZus{}flag;
+\PYG{k}{t} model\PYGZus{}test6\PYGZus{}results;
+ shot\PYGZus{}made\PYGZus{}flag \PYGZlt{} \PYG{l+m}{1} \PYG{k}{then} shot\PYGZus{}made\PYGZus{}flag = predict;
+\PYG{k}{ep} shot\PYGZus{}id shot\PYGZus{}made\PYGZus{}flag;
+\PYG{k}{ere} \PYG{k}{file} = \PYG{l+s}{\PYGZdq{}TEST\PYGZdq{}}\PYG{k+kr}{;}
+\PYG{k+kr}{n;}
+\end{Verbatim}

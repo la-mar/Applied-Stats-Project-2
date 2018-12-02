@@ -197,7 +197,7 @@ class LogR(LogisticRegression):
         plt.plot(fpr, tpr, lw=1, alpha=1,
                     label='ROC fold %d (AUC = %0.2f)' % (1, roc_auc))
 
-        plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
+        g = plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
                 label='Chance', alpha=.8)
 
         plt.xlim([-0.05, 1.05])
@@ -206,7 +206,19 @@ class LogR(LogisticRegression):
         plt.ylabel('True Positive Rate')
         plt.title('Receiver operating characteristic example')
         plt.legend(loc="lower right")
-        plt.show()
+        g.set_title(f'Distribution of {y}', color = cNoFocus)
+        g.set_xlabel(f'{y}', size = 'xx-large', color = cNoFocus)
+        g.set_ylabel(f'Density', size = 'xx-large', color = cNoFocus)
+        g.set_xticklabels(g.get_xticklabels(), size = 'xx-large')
+        g.set_yticklabels(g.get_yticklabels(), size = 'xx-large')
+        g.tick_params(colors=cNoFocus)
+        g.spines['bottom'].set_color(cNoFocus)
+        g.spines['top'].set_color(cNoFocus)
+        g.spines['left'].set_color(cNoFocus)
+        g.spines['right'].set_color(cNoFocus)
+        g.xaxis.label.set_color(cNoFocus)
+        g.yaxis.label.set_color(cNoFocus)
+        return
 
 
     def predict_labels(self, x, thresh = 0.5):

@@ -6,7 +6,9 @@
 % include all packages and define commands in setup.tex
 \input{setup}
 
+
 \begin{document}
+
     \pagestyle{empty} % no header and no page number
     % disable hyper links to remove warning "destination with same identifier"
     % this means within this section nothing can be referenced with a hyperlink
@@ -19,28 +21,37 @@
     \tableofcontents
     \listoffigures
     \listoftables
-    \listofalgorithms
+    % \listofalgorithms
     \hypersetup{pageanchor=true}  % re-enable hyperlinking
 
+    \setlength{\parindent}{10ex}
     \mainmatter  % Arabic page numbers
     \include{chapters/1-introduction}
     % \include{chapters/2-background} % Debatably not needed
     \include{chapters/3-approach}
     \include{chapters/4-methods}
     \include{chapters/5-conclusions}
-    \include{chapters/6-discussion}
+    % \include{chapters/6-discussion}
     \include{chapters/7-appendix}
-    \addappheadtotoc
+    % \addappheadtotocs
+
     % bibliography is not in the table of contents per default, add it manually
     % \addcontentsline{toc}{chapter}{Bibliography}
+
     % \bibliographystyle{ieeetr} % IEEE
-    % \bibliography{bib/topic1,bib/topic2}
+    % \printbibliography
     % \newpage
     % \thispagestyle{empty}
     % \mbox{}
 
 
+    \begin{thebibliography}{1}
 
+        \bibitem{market} Sports Analytics Market{\em Sports Analytics Market.} Market Research Firm, www.marketsandmarkets.com/Market-Reports/sports-analytics-market-35276513.html.
+
+        \bibitem{cm} Confusion Matrix Pretty Print: Wagner Cipriano, https://github.com/wcipriano/pretty-print-confusion-matrix/blob/master/confusion_matrix_pretty_print.py
+
+        \end{thebibliography}
 \end{document}
 
 

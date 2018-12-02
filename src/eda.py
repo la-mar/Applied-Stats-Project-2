@@ -24,9 +24,9 @@ from scipy.spatial import distance
 
 
 pd.options.display.max_rows = None
-pd.set_option('display.float_format', lambda x: '%.4f' % x)
+pd.set_option('display.float_format', lambda x: '%.3f' % x)
 pd.set_option('large_repr', 'truncate')
-pd.set_option('precision',4)
+pd.set_option('precision',2)
 
 # Matplotlib global config
 plt.rcParams.update({'legend.fontsize': 'x-large',
