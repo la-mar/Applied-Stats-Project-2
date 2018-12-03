@@ -43,7 +43,6 @@ plt.rcParams.update({'legend.fontsize': 'x-large',
 		 'axes.titleweight': 'bold'
 		 })
 
-# plt.style.use('seaborn-deep')
 
 
 # Define Contants
@@ -442,93 +441,3 @@ def identify_outliers(data):
 	pass
 
 
-
-# action_counts = DATA['action_type'].value_counts().sort_values(ascending = False)
-
-# from scipy import stats
-# d2[(np.abs(stats.zscore(d2)) < 3).any(axis=1)]
-# d2[np.abs(d2-d2.mean()) <= (3*d2.std())]
-# stats.trimb
-
-# data = data.drop(columns = [
-#     'minutes_remaining',
-#     'seconds_remaining',
-#     'seconds_elapsed_in_game',
-#     'lat',
-#     'lon',
-#     'game_event_id',
-#     'period',
-#     'seconds_left_in_period',]
-#     )
-
-# Sort features by VIF
-
-# NOTE: PLOTS
-
-# fig, ax = plt.subplots(figsize=(12,8))
-# ax = sns.scatterplot('loc_x', 'loc_y', hue = 'shot_made_flag', data = data)
-# ax.set_title('Shot Location')
-# ax.set_xlabel('X')
-# ax.set_ylabel('Y')
-# ax.set_ylim(0, 400)
-# fig.savefig('figs/p2-3_price-v-months.png')
-
-# fig, ax = plt.subplots(figsize=(12,8))
-# ax = data.boxplot()
-# ax.set_xticklabels(data.columns, rotation=90)
-# fig.tight_layout()
-
-# fig, ax = plt.subplots(figsize=(12,8))
-# ax = data.select_dtypes(include=[np.number]).hist()
-# # ax.set_xticklabels(data.columns, rotation=90)
-# fig.tight_layout()
-
-# import time
-# from sklearn.linear_model import LassoCV
-# print("Computing regularization path using the coordinate descent lasso...")
-# t1 = time.time()
-# model = LassoCV(cv=5).fit(X, y)
-# t_lasso_cv = time.time() - t1
-
-# # Display results
-# m_log_alphas = -np.log10(model.alphas_)
-
-# plt.figure()
-# ymin, ymax = 2300, 3800
-# plt.plot(m_log_alphas, model.mse_path_, ':')
-# plt.plot(m_log_alphas, model.mse_path_.mean(axis=-1), 'k',
-#          label='Average across the folds', linewidth=2)
-# plt.axvline(-np.log10(model.alpha_), linestyle='--', color='k',
-#             label='alpha: CV estimate')
-
-# plt.legend()
-
-# plt.xlabel('-log(alpha)')
-# plt.ylabel('Mean square error')
-# plt.title('Mean square error on each fold: coordinate descent '
-#           '(train time: %.2fs)' % t_lasso_cv)
-# plt.axis('tight')
-# plt.ylim(ymin, ymax)
-
-
-# def correct_multicollinearity(data: pd.DataFrame) -> pd.DataFrame:
-# 	print('Anterior VIF')
-# 	print(vif(data, DEPENDENT))
-
-# 	# Drop multicolinear features
-# 	data = data.drop(columns = [
-# 		'minutes_remaining',
-# 		'seconds_remaining',
-# 		'seconds_elapsed_in_game',
-# 		'lat',
-# 		'lon',
-# 		'game_event_id',
-# 		'period',
-# 		'seconds_left_in_period',
-
-# 	])
-
-# 	print('Posterior VIF')
-# 	v = vif(data, DEPENDENT)
-# 	print(v)
-# 	return data

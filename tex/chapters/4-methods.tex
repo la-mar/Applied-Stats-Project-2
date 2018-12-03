@@ -6,9 +6,11 @@
 \indent As mentioned in the previous section, the feature selection process was dominated by the prevalent mulicollinearity between many of the features. As example, collinearity was reduced to a tolerable range in the featureset of one candidate model pictured in figure \ref{fig:corr_matrix_model5}.
 
 \vskip 1cm
-\begin{figure}[!htb]
+% \begin{wrapfigure}{R}{1\textwidth}
+    \begin{figure}
     \center{\includegraphics[width=\textwidth]{../figs/model5_corr_matrix.png}}
     \caption{\label{fig:corr_matrix_model5} Correlation Matrix - Candidate Model}
+% \end{wrapfigure}
 \end{figure}
 \vskip 1cm
 
@@ -31,7 +33,7 @@
     \end{tabular}
     \end{table}
     \captionof{table}{Logistic Model Summary}\label{tbl:modelsummary}
-    \bigbreak
+    % \bigbreak
 
 
 
@@ -59,13 +61,15 @@
 \vskip 1cm
 
 A model composition chart, displayed in figure \ref{fig:model5features} shows the features selected in the champion model, along with the model's confusion matrix.
-
-\begin{figure}[!hb]
+\vskip 1cm
+% \begin{wrapfigure}{R}{1\textwidth}
+    \begin{figure}
     \center{\includegraphics[width=\textwidth]{../figs/model5features.PNG}}
     \caption{\label{fig:model5features} Model Composition Chart}
+% \end{wrapfigure}
 \end{figure}
 \cite{cm}
-
+\vskip 1cm
 A full listing of candidate models can be seen in the appendix (\ref{appendix-a}).
 
 \section{Evaluation}

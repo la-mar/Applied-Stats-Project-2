@@ -11,10 +11,11 @@ Sports analytics is, as many previously low-tech markets are, poised to boom as 
 
 \cite{market}
 \vskip 1cm
-\begin{wrapfigure}{L}{0.3\textwidth}
+% \begin{wrapfigure}{L}{0.3\textwidth}
+    \begin{figure}
     \center{\includegraphics[width=0.4\textwidth]{../figs/sports-analytics-markets.png}}
     \caption{\label{fig:marketsandmarkets} Market Analysis}
-\end{wrapfigure}
+\end{figure}
 \vskip 1cm
 \par
 \indent This study was birthed out of a need to reliably quantify three key metrics specifically, each used in assessing a professional basketball player's shooting ability.  Those metris are:
@@ -80,6 +81,7 @@ Below, we set the stage for conducting our analysis through an exploratory analy
 
 % Please add the following required packages to your document preamble:
 % \usepackage{graphicx}
+\vskip 4cm
 \begin{table}[!hb]
     \centering
     \caption{Key Feature Descriptions}
@@ -99,7 +101,7 @@ Below, we set the stage for conducting our analysis through an exploratory analy
     \end{tabular}%
     }
     \end{table}
-
+    \vskip 1cm
 \par \indent From the available features, the variable "shot\_made\_flag" indicates whether a particular
 shot was made (1) or missed (0), and is the feature that acts as our endogenous variable. The remainder of the features are the potential predictors, or exogenous variables. Since there are a managable number of them, we can simply generate descriptive plots for each exogenous feature.  Univariate distribution or frequency plots are ideal for vizualizing the underlying distristribution of each variable. In addition, boxplots for each exogenous feature against each level of the endogenous variable allowed us to develop our intuition about the variance within each level of the target feature.\par
 
@@ -108,7 +110,8 @@ Most of the features show no signs of skewness or severe departures from normali
 
 
 \vskip 1cm
-\begin{wrapfigure}{R}{0.3\textwidth}
+% \begin{wrapfigure}{R}{0.3\textwidth}
+\begin{figure}
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
         \center{\includegraphics[scale=0.25]{../figs/boxplot_loc_y.png}}
@@ -122,16 +125,19 @@ Most of the features show no signs of skewness or severe departures from normali
       \label{fig:2}
     \end{subfigure}
     \caption{\label{fig:y_loc_plots} Plots of y\_loc}
-\end{wrapfigure}
+% \end{wrapfigure}
+\end{figure}
 \vskip 1cm
 
 \indent It's clear that outliers are prevalent in some of the features, particularly those representing the distance to the hoop and the time remaining, as represented in figures \ref{fig:distplot_loc_y} and \ref{fig:boxplot_loc_y}.  Several solutions were explored to mitigate the potential impact of the outliers, none of which yielded a model with better results. Thus, all outliers were included in the final models on their original scale.\par
 
 \vskip 1cm
-\begin{wrapfigure}{R}{0.3\textwidth}
+% \begin{wrapfigure}{R}{0.3\textwidth}
+    \begin{figure}
     \center{\includegraphics[width=0.5\textwidth]{../figs/boxplot_shot_distance.png}}
     \caption{\label{fig:boxplot_shot_distance} Boxplot of Shot Distance}
-\end{wrapfigure}
+% \end{wrapfigure}
+\end{figure}
 \vskip 1cm
 
 
@@ -143,11 +149,11 @@ The exploratory boxplot of shot\_distance (figure \ref{fig:boxplot_shot_distance
 \indent The base feature set was wrought with violations of independent variability.  As noted in the table and it's accompanying correlation matrix, approximately half of the features showed a collinear relationship with other features in the data set. This caused our approach to feature selection vary from the normal methods.  We chose to ignore the more nuanced stepwise / LASSO / LarsCV methods and instead implemented a procedure to recursively drop a feature with an exorbitant variance inflation factor on each iteration until reaching a feature set that showed no multicollinearity violations.  We used an elimination cutoff of the initial median VIF + 2 standard deviations.  Variance inflation factors for the original features can be seen in table \ref{tbl:vifs}. A correlation matrix of the same feature set is displayed in figure \ref{fig:corr_matrix_allvars}.
 
 \vskip 1cm
-\begin{wrapfigure}{R}{0.3\textwidth}
+\begin{figure}
     \centering
     \center{\includegraphics[width=1\textwidth]{../figs/corr_matrix_allvars.png}}
     \caption{\label{fig:corr_matrix_allvars} Correlation Matrix - All features}
-\end{wrapfigure}
+\end{figure}
 \vskip 1cm
 \cite{cm}
 

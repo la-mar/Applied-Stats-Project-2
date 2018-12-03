@@ -218,7 +218,7 @@ class LogR(LogisticRegression):
         g.spines['right'].set_color(cNoFocus)
         g.xaxis.label.set_color(cNoFocus)
         g.yaxis.label.set_color(cNoFocus)
-        return
+        return g
 
 
     def predict_labels(self, x, thresh = 0.5):
@@ -254,43 +254,5 @@ def RecursiveFeatureSelection(X, y):
     rfe = RFE(logreg, 20)
     rfe = rfe.fit(X.fillna(0), y.values.ravel())
     return rfe
-
-
-# Evaluate Model
-# https://www.r-bloggers.com/evaluating-logistic-regression-models/
-
-
-
-#! http://blog.yhat.com/posts/logistic-regression-and-python.html
-
-#! Dont use r-sq
-# https://stats.stackexchange.com/questions/3559/which-pseudo-r2-measure-is-the-one-to-report-for-logistic-regression-cox-s
-
-# TODO: Kobe last minute shots are outliers
-
-
-
-
-
-# X_train, X_test, y_train, y_test = train_test_split(
-#     d3.drop(columns=[DEPENDENT]),
-#      d3[DEPENDENT], test_size=0.3, random_state=0)
-# logreg = LogisticRegression(fit_intercept = True, C = 1e9)
-# logreg.fit(X_train, y_train)
-# y_pred = logreg.predict(X_test)
-# print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(logreg.score(X_test, y_test)))
-# log_loss(y_test, y_pred)
-# logreg.coef_
-
-# # sm
-# logit = sm.Logit(y_train, X_train)
-# logit.fit().params
-
-
-
-
-
-
-
 
 

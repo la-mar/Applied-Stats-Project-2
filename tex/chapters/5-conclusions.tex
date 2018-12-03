@@ -1,30 +1,33 @@
 \chapter{Conclusion}\label{chap:conclusion}
 
 \par
-Finally, now that we've demonstrated the process of applying binary classification techniques to NBA shooting data, we can return to the original questions of interest.  Our findings show a $ -1.87 \% \pm  0.85 \%\,\,  (-2.72 \%, -1.01 \%) $ step change in Kobe Bryant's shot making ability, measured with a p-value of $< 0.001$ at $\alpha = 0.05$ (figure \ref{fig:plotproba}). That is to say, for every additional foot between Bryant and the basket, his accuracy is reduced by just under 2\%.  Another, perhaps more familiar way to put it is in terms of odds. Kobe's odds of making a basket are $$ 0.9813 \pm 0.0084   \,\, (0.9728 , 0.9899 )  $$ with respect to his distance from the basket.
+\indent Finally, now that we've demonstrated the process of applying binary classification techniques to NBA shooting data, we can return to the original questions of interest.  Our findings show a $ -1.87 \% \pm  0.85 \%\,\,  (-2.72 \%, -1.01 \%) $ step change in Kobe Bryant's shot making ability, measured with a p-value of $< 0.001$ at $\alpha = 0.05$ (figure \ref{fig:plotproba}). That is to say, for every additional foot between Bryant and the basket, his accuracy is reduced by just under 2\%.  Another, perhaps more familiar way to put it is in terms of odds. Kobe's odds of making a basket are $$ 0.9813 \pm 0.0084   \,\, (0.9728 , 0.9899 )  $$ with respect to his distance from the basket.
 
 
-
-\begin{figure}[!hb]
+\vskip 1cm
+% \begin{wrapfigure}{R}{0.4\textwidth}
+    \begin{figure}
     \center{\includegraphics[width=\textwidth]{../figs/plot_proba.png}}
     \caption{\label{fig:plotproba} Predicted Shot Probability over Distance to Hoop}
+% \end{wrapfigure}
 \end{figure}
+\vskip 1cm
 
-
-Additionally, the model indicates a $ 4.25\% \pm 9.9\% \,\,(-4.77\%, 14.15\%) $increase in shooting ability}
-during the playoffs, however, the result was not statistically significant, with a
+\indent Additionally, the model indicates a $ 4.25\% \pm 9.9\% \,\,(-4.77\%, 14.15\%) $ increase in shooting ability during the playoffs, however, the result was not statistically significant, with a
 p-value of 0.3671 at an $\alpha$ level of $0.05$ on the $\chi^2$ distribution.  There is not sufficient evidence to reject the null hypothesis that Kobe's performance shows no notable difference between regular and post season. (table \ref{fig:post-season})
 
-\begin{figure}[!hb]
+% \begin{wrapfigure}{R}{0.4\textwidth}
+    \begin{figure}
     \center{\includegraphics[width=\textwidth]{../figs/plot_regular_vs_post_season.png}}
     \caption{\label{fig:post-season} Performance in Regular and Post Season}
+% \end{wrapfigure}
 \end{figure}
-
+\vskip 1cm
 
 Figure tables of Log-odds, odds, and percentage change in shooting ability with respect to distance:
 
-Log-Odds:
-\resizebox{\textwidth}{!}{\begin{tabular}{lrrrrrr}
+
+\resizebox{0.8\textwidth}{!}{\begin{tabular}{lrrrrrr}
     \toprule
     {} &  Coef. &  Std.Err. &  z &  P>|z| &  [0.025 &          0.975] \\
     \midrule
@@ -47,8 +50,8 @@ Log-Odds:
     \end{tabular}
     }\captionof{table}{Log-odds with Respect to Distance}\label{tbl:logodds}
 
-Odds:
-\resizebox{\textwidth}{!}{\begin{tabular}{lrrrrrr}
+
+\resizebox{0.8\textwidth}{!}{\begin{tabular}{lrrrrrr}
     \toprule
     {} &  Coef. &  Std.Err. &  z &  P>|z| &  [0.025 &          0.975] \\
     \midrule
@@ -71,9 +74,8 @@ Odds:
     \end{tabular}
     }\captionof{table}{Odds with Respect to Distance}\label{tbl:odds}
 
-Percent Change:
 
-\resizebox{\textwidth}{!}{\begin{tabular}{lrrr}
+\resizebox{0.8\textwidth}{!}{\begin{tabular}{lrrr}
     \toprule
     {} &  Coef. &  [0.025 &            0.975] \\
     \midrule

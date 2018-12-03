@@ -1,12 +1,12 @@
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}
 \contentsline {chapter}{\numberline {2}Approach}{3}{chapter.2}
 \contentsline {section}{\numberline {2.1}Problem Definition}{3}{section.2.1}
-\contentsline {section}{\numberline {2.2}Exploratory Analysis}{4}{section.2.2}
-\contentsline {subsection}{\numberline {2.2.1}Data Overview}{4}{subsection.2.2.1}
-\contentsline {subsection}{\numberline {2.2.2}Multicollinearity}{7}{subsection.2.2.2}
+\contentsline {section}{\numberline {2.2}Exploratory Analysis}{5}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}Data Overview}{5}{subsection.2.2.1}
+\contentsline {subsection}{\numberline {2.2.2}Multicollinearity}{8}{subsection.2.2.2}
 \contentsline {chapter}{\numberline {3}Methodoloy}{11}{chapter.3}
 \contentsline {section}{\numberline {3.1}Feature Selection}{11}{section.3.1}
-\contentsline {section}{\numberline {3.2}Model Selection}{12}{section.3.2}
+\contentsline {section}{\numberline {3.2}Model Selection}{11}{section.3.2}
 \contentsline {section}{\numberline {3.3}Evaluation}{14}{section.3.3}
 \contentsline {chapter}{\numberline {4}Conclusion}{15}{chapter.4}
 \contentsline {chapter}{\numberline {5}Limitations and Future Directions}{21}{chapter.5}
@@ -15,5 +15,5 @@
 \contentsline {section}{\numberline {6.2}Appendix A}{23}{section.6.2}
 \contentsline {subsection}{\numberline {6.2.1}Model Comparison - Continued}{23}{subsection.6.2.1}
 \contentsline {subsection}{\numberline {6.2.2}Data Dictionary}{23}{subsection.6.2.2}
-\contentsline {section}{\numberline {6.3}SAS Code}{23}{section.6.3}
-\contentsline {section}{\numberline {6.4}Python Code}{44}{section.6.4}
+\contentsline {section}{\numberline {6.3}SAS Code}{24}{section.6.3}
+\contentsline {section}{\numberline {6.4}Python Code}{43}{section.6.4}

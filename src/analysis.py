@@ -35,8 +35,6 @@ def pca_bin(train_x: pd.DataFrame, n_components = 2) -> pd.DataFrame:
                 index = train_x.index)
     return result
 
-
-
 def kaggle_test(cfr: str) -> pd.DataFrame:
 
     data = pd.read_csv('data/kaggle-data.csv')
