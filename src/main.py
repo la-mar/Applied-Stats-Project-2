@@ -131,6 +131,8 @@ REDUNDANT_FEATURES = [
     - Drop redundant features
 """
 
+
+
 d2 = prepare_data(DATA, drop_columns= REDUNDANT_FEATURES)
 d2 = get_dummies(d2).fillna(0) # Get dummy variables for categoricals
 d2_pred = wrangle_features(FOR_PREDICTION)
